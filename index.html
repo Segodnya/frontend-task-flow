@@ -1,0 +1,1571 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frontend-задача с Claude Code — интерактивный гайд</title>
+<script>
+// Theme is applied before first paint, otherwise a dark page flashes light
+(() => {
+  let t;
+  try { t = localStorage.getItem('frontend-task-flow:theme'); } catch {}
+  document.documentElement.dataset.theme = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;600&family=JetBrains+Mono:wght@400;700&family=Unbounded:wght@600&display=swap">
+<style>
+/* Page metaphor: a task's path is a pipeline. Signal color marks the current stage, green a finished one */
+:root {
+  --font: "Golos Text", system-ui, sans-serif;
+  --display: "Unbounded", "Golos Text", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  /* Palette follows the light and dark themes of the Kommo UI */
+  --ink: #363b44;
+  --ink-2: #50565f;
+  --ink-3: #6b6d72;
+  --bg: #fff;
+  --panel: #f5f5f5;
+  --panel-hover: #ebeced;
+  --rule: #e8eaeb;
+  --rule-strong: #cdd1d4;
+  --signal: #3771d6;
+  --signal-hover: #2b5cb3;
+  --signal-soft: #edf3ff;
+  --done: #11815a;
+  --done-soft: #e4f5ec;
+  --warn: #9a4f00;
+  --warn-soft: #fff3df;
+  --err: #ce3942;
+  --err-soft: #fdeaea;
+  --code-bg: #0f2231;
+  --code-text: #d5dde6;
+  --code-dim: #8590ae;
+  --code-accent: #a3b1ff;
+  --code-warm: #ffb48a;
+  /* Text and icons on top of --signal / --done fills */
+  --on-fill: #fff;
+  color-scheme: light;
+  /* Icons from Kommo Sutra (Icons Kommo, Type=Outline), colored via mask + currentColor */
+  --icon-info: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M10.972 15.194H9.023V8.701h1.949zM10.003 4.806q.412 0 .69.283.279.285.279.696a.93.93 0 0 1-.284.69.96.96 0 0 1-.696.278.93.93 0 0 1-.69-.284.96.96 0 0 1-.279-.696q0-.41.285-.689a.96.96 0 0 1 .695-.278'/><path fill-rule='evenodd' d='M10 0c5.523 0 10 4.477 10 10s-4.477 10-10 10S0 15.523 0 10 4.477 0 10 0m0 1.299A8.701 8.701 0 1 0 10 18.7a8.701 8.701 0 0 0 0-17.402'/></svg>");
+  --icon-success: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='m14.865 7.515-6.234 6.233-.514.515-3.632-3.632 1.03-1.028 2.601 2.602 5.72-5.72z'/><path fill-rule='evenodd' d='M10 0c5.523 0 10 4.477 10 10s-4.477 10-10 10S0 15.523 0 10 4.477 0 10 0m0 1.299A8.701 8.701 0 1 0 10 18.7a8.701 8.701 0 0 0 0-17.402'/></svg>");
+  --icon-warning: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M10.09 14.175c.35 0 .623.097.817.272q.293.293.293.76 0 .468-.293.76-.292.292-.817.292c-.331 0-.585-.097-.799-.292Q9 15.675 9 15.207q0-.467.292-.76c.195-.194.468-.272.8-.272M11.025 11.019l-.351 2.22h-1.13l-.35-2.22v-4.5h1.83z'/><path fill-rule='evenodd' d='M8.103 2.145c.844-1.46 2.953-1.461 3.797 0l7.803 13.517c.844 1.462-.21 3.288-1.898 3.288H2.197a2.185 2.185 0 0 1-1.899-3.288zm2.67.65a.892.892 0 0 0-1.544 0L1.424 16.313a.892.892 0 0 0 .773 1.338h15.608a.892.892 0 0 0 .772-1.338z'/></svg>");
+  --icon-error: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M9.99 12.785c.35 0 .622.098.817.274q.292.292.293.76-.001.465-.293.76-.293.291-.818.291c-.33 0-.584-.097-.799-.292q-.29-.292-.292-.76 0-.467.292-.76c.195-.194.468-.273.8-.273M10.924 9.63l-.35 2.22h-1.13l-.351-2.22v-4.5h1.83z'/><path fill-rule='evenodd' d='M9.999 0c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10m0 1.299a8.701 8.701 0 1 0 0 17.402 8.701 8.701 0 0 0 0-17.402'/></svg>");
+  --icon-chevron: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M8 15.5 7 14.5l4.4-4.5L7 5.5l1-1 5.5 5.5z'/></svg>");
+  --icon-check: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M16.15 4.18c-.37-.37-1.12-.12-1.49.37l-5.59 6.6c-.12.12-.37.12-.5.12L5.22 9.16c-.5-.37-1.25-.37-1.5.12-.37.37-.25 1 .13 1.5l3.97 4.6c.38.37.75.62 1.25.62s.99-.25 1.37-.75l5.84-9.46c.37-.5.25-1.24-.13-1.61z'/></svg>");
+  --icon-cross: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M3.3 2.5 8 7.2l4.7-4.7.8.8L8.8 8l4.7 4.7-.8.8L8 8.8l-4.7 4.7-.8-.8L7.2 8 2.5 3.3z'/></svg>");
+  --sidebar: 260px;
+  --gap: 96px;
+  --progress: 0;
+  transition: --progress .6s ease-out;
+}
+/* Terminal is darker than the page so the demo and code blocks read as "windows" */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #f2f2f2;
+  --ink-2: #c3ccd8;
+  --ink-3: #8a9bb5;
+  --bg: #0f2231;
+  --panel: #153043;
+  --panel-hover: #1b3a52;
+  --rule: #284860;
+  --rule-strong: #3a5d78;
+  --signal: #4ea5e6;
+  --signal-hover: #72b8ec;
+  --signal-soft: #143a57;
+  --done: #58b98f;
+  --done-soft: #153b35;
+  --warn: #f1b05a;
+  --warn-soft: #3a2f17;
+  --err: #f0767c;
+  --err-soft: #3d1f29;
+  --code-bg: #0a1823;
+  --on-fill: #0f2231;
+}
+/* Registration lets the ring and path-line gradients animate instead of snapping */
+@property --progress { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --fill { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font: 16px/1.6 var(--font); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
+main > section, [id] { scroll-margin-top: 24px; }
+a { color: var(--signal); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--signal-hover); text-decoration-thickness: 2px; }
+a[target="_blank"]::after { content: "↗"; font-size: .75em; margin-left: 2px; vertical-align: super; line-height: 0; }
+:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3, h4 { margin: 0; color: var(--ink); }
+h1, h2 { font-family: var(--display); font-weight: 600; letter-spacing: -.015em; }
+p { margin: 0 0 14px; }
+p, li { max-width: 68ch; }
+ul, ol { margin: 0 0 14px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+li::marker { color: var(--ink-3); }
+strong { font-weight: 600; }
+code { font: .86em var(--mono); background: var(--panel); border-radius: 4px; padding: 1px 5px; }
+table { width: 100%; border-collapse: collapse; margin: 0 0 16px; font-size: 15px; line-height: 1.45; }
+th, td { text-align: left; vertical-align: top; padding: 11px 14px; border-bottom: 1px solid var(--rule); }
+th { font-size: 13px; font-weight: 600; background: var(--panel); color: var(--ink-2); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; margin: 0 0 20px; }
+.table-wrap table { margin: 0; }
+.table-wrap tr:last-child td { border-bottom: 0; }
+td code { white-space: nowrap; }
+.skip { position: absolute; left: -9999px; }
+.skip:focus { left: 12px; top: 12px; z-index: 100; background: var(--bg); padding: 8px 12px; }
+.bar { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+/* ---------- Sidebar ---------- */
+.sidebar { position: fixed; inset: 0 auto 0 0; width: var(--sidebar); background: var(--panel); display: flex; flex-direction: column; z-index: 30; }
+.sidebar-head, .sidebar-foot { flex: none; display: flex; align-items: center; }
+.sidebar-head { height: 72px; padding: 0 22px; }
+.sidebar-title { flex: 1; font: 600 15px/1.2 var(--display); letter-spacing: -.01em; }
+.theme-btn { flex: none; width: 36px; height: 36px; margin-right: -8px; padding: 8px; border: 0; border-radius: 8px; background: none; color: var(--ink-2); cursor: pointer; }
+.theme-btn:hover { background: var(--panel-hover); color: var(--ink); }
+.theme-btn svg { display: block; width: 20px; height: 20px; }
+[data-theme="dark"] .theme-btn .moon, :root:not([data-theme="dark"]) .theme-btn .sun { display: none; }
+.toc { flex: 1; overflow-y: auto; padding: 0 10px; }
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; max-width: none; }
+.toc > ul { padding: 8px 0 16px; }
+.toc > ul + ul { border-top: 1px solid var(--rule); padding-top: 16px; }
+.toc a, .toc-group { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 6px 12px; border: 0; border-radius: 8px; background: none; color: var(--ink-2); font: 15px/20px var(--font); text-align: left; text-decoration: none; cursor: pointer; }
+.toc a:hover, .toc-group:hover { background: var(--panel-hover); color: var(--ink); }
+.toc a[aria-current] { background: var(--signal-soft); color: var(--signal-hover); font-weight: 600; }
+.toc svg { flex: none; width: 20px; height: 20px; }
+.toc .sub a { padding-left: 42px; }
+.toc-group::after { content: ""; flex: none; width: 20px; height: 20px; margin-left: auto; background: currentColor; -webkit-mask: var(--icon-chevron) center / contain no-repeat; mask: var(--icon-chevron) center / contain no-repeat; transform: rotate(90deg); transition: transform .2s; }
+.toc-group[aria-expanded="true"]::after { transform: rotate(-90deg); }
+.toc-group[aria-expanded="false"] + .sub { display: none; }
+.st { flex: none; margin-left: auto; }
+.st-done { width: 16px; height: 16px; background: var(--done); -webkit-mask: var(--icon-success) center / contain no-repeat; mask: var(--icon-success) center / contain no-repeat; }
+.st-current { width: 8px; height: 8px; margin-right: 4px; border-radius: 50%; background: var(--signal); }
+.sidebar-foot { gap: 12px; padding: 16px 22px 20px; border-top: 1px solid var(--rule); font-size: 14px; line-height: 1.4; }
+.ring { --size: 38px; flex: none; width: var(--size); height: var(--size); border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(var(--done) calc(var(--progress) * 1%), var(--rule) 0); }
+.ring span { width: calc(var(--size) - 6px); height: calc(var(--size) - 6px); border-radius: 50%; background: var(--bg); display: grid; place-items: center; font: 600 10px/1 var(--font); }
+.link-btn { background: none; border: 0; padding: 0; font: 13px/1.4 var(--font); color: var(--ink-3); cursor: pointer; }
+.link-btn:hover { color: var(--ink); text-decoration: underline; }
+
+/* ---------- Mobile top bar ---------- */
+.topbar { display: none; }
+.backdrop { position: fixed; inset: 0; z-index: 25; }
+.backdrop, dialog.keys::backdrop { background: rgba(15, 34, 49, .5); }
+
+/* ---------- Main ---------- */
+main { margin-left: var(--sidebar); padding: 56px 64px 140px; overflow-x: clip; }
+main > section { max-width: 820px; margin: 0 auto var(--gap); }
+
+/* ---------- Hero ---------- */
+.hero h1 { font-size: clamp(32px, 3.8vw, 52px); line-height: 1.08; max-width: 16ch; margin-bottom: 20px; }
+.hero .lead { font-size: 20px; line-height: 1.5; color: var(--ink-2); max-width: 36em; }
+.hero .why { margin: 40px 0 0; }
+.progress-card { margin: 36px 0 0; padding: 24px 28px 28px; border-radius: 14px; background: var(--panel); transition: background .4s; }
+.progress-card.complete { background: var(--done-soft); }
+.hero:has(.progress-card.complete) .btn-primary { background: var(--done); }
+.hero > .actions { margin-top: 28px; }
+
+/* ---------- Hero: terminal demo ---------- */
+.demo-bar, pre[data-label]::before { border-bottom: 1px solid rgba(255, 255, 255, .07); color: #8f9abb; font: 13px/18px var(--font); }
+.demo-bar { background:
+  radial-gradient(circle, #ff5f57 0 5px, transparent 5.5px) 16px 50% / 12px 12px no-repeat,
+  radial-gradient(circle, #febc2e 0 5px, transparent 5.5px) 34px 50% / 12px 12px no-repeat,
+  radial-gradient(circle, #28c840 0 5px, transparent 5.5px) 52px 50% / 12px 12px no-repeat; }
+.demo { margin: 36px 0 0; border-radius: 14px; overflow: hidden; background: var(--code-bg); color: var(--code-text);
+  box-shadow: 0 0 0 1px var(--rule), 0 28px 56px -24px rgba(15, 34, 49, .45), 0 24px 80px -32px color-mix(in srgb, var(--signal) 55%, transparent); }
+.demo-bar { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 6px 8px 6px 74px; }
+.demo-replay, .copy { border: 0; border-radius: 6px; background: rgba(255, 255, 255, .08); color: var(--code-text); font: 600 13px/1 var(--font); padding: 7px 12px; cursor: pointer; transition: background .15s, color .15s; }
+.demo-tabs { display: flex; gap: 4px; min-width: 0; overflow-x: auto; }
+.demo-tab { flex: none; border: 0; border-radius: 6px; background: none; color: #8f9abb; font: 600 13px/1 var(--mono); padding: 7px 10px; cursor: pointer; transition: background .15s, color .15s; }
+.demo-tab:hover, .demo-tab[aria-selected="true"] { color: #fff; }
+.demo-tab[aria-selected="true"] { background: rgba(255, 255, 255, .1); }
+.demo-replay { flex: none; margin-left: auto; white-space: nowrap; }
+/* Tabs share one grid cell: terminal height follows the longest session, nothing jumps on switch */
+.demo-stack { display: grid; }
+.demo-stack > .demo-body { grid-area: 1 / 1; }
+.demo-body[hidden] { display: block; visibility: hidden; }
+.demo-replay:hover, .copy:hover { background: rgba(255, 255, 255, .16); color: #fff; }
+.demo-body { padding: 16px 20px 20px; font: 14px/1.7 var(--mono); }
+.tl { display: grid; grid-template-columns: 2.2ch 1fr; --d: 0s; }
+.tl::before { color: var(--code-dim); }
+.tl-cmd::before, .tl-end::before { content: ">"; }
+.tl-cmd b { color: var(--code-accent); font-weight: 700; }
+.tl-you::before { content: ">"; }
+.tl-you { color: var(--code-accent); }
+.tl-ask::before { content: "?"; color: #ffd479; font-weight: 700; }
+.tl-cmd:not(:first-child), .tl-you, .tl-you + .tl { margin-top: 12px; }
+.tl-run { color: var(--code-dim); }
+.tl-run::before { content: "✻"; color: var(--code-warm); justify-self: start; }
+.tl-ok { color: #fff; }
+.tl-ok::before { content: "●"; color: #95dfb4; font-size: .8em; }
+.tl-note { margin-top: 12px; color: var(--code-dim); }
+.tl-note::before { content: "#"; }
+.tl-end { margin-top: 12px; }
+.tl-end::after { content: ""; width: .6em; height: 1.2em; align-self: center; background: var(--code-text); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes tl-in { from { opacity: 0; } }
+@keyframes spin { to { transform: rotate(1turn); } }
+/* --d, --c and --cps are set by the script: line delay, character index, time per character */
+.demo.play .tl { animation: tl-in .2s var(--d) both; }
+.demo.play .ch { animation: tl-in 1ms calc(var(--d) + var(--c) * var(--cps)) both; }
+.demo.play .tl-run::before { animation: spin .6s linear var(--d) 2; }
+
+/* ---------- Hero: audit rings ---------- */
+.rounds { display: grid; grid-template-columns: max-content 1fr; gap: 10px 16px; align-items: center; font-size: 15px; line-height: 1.3; }
+.round-label { color: var(--ink-3); }
+.why-stat { margin: 28px 0 0; }
+.why-nums { display: flex; align-items: flex-start; gap: 16px; color: var(--ink-3); font-size: 14px; line-height: 1.4; }
+.why-nums > div { display: flex; flex-direction: column; min-width: 0; }
+.why-nums strong, .why-arrow { font: 600 28px/1.2 var(--display); letter-spacing: -.01em; }
+.why-nums strong { color: var(--ink); }
+.why-nums > div:last-child strong { color: var(--done); }
+.why-stat p { max-width: none; margin: 10px 0 0; color: var(--ink-3); font-size: 14px; line-height: 1.45; }
+.round { display: flex; align-items: center; }
+.round span { padding: 4px 10px; border-radius: 999px; background: var(--panel); color: var(--ink-2); font-weight: 600; white-space: nowrap; }
+.round .again { background: var(--warn-soft); color: var(--warn); }
+.round .ok { background: var(--done-soft); color: var(--done); }
+.round i { flex: none; width: 24px; height: 2px; background: var(--rule-strong); }
+.progress-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.progress-top strong { font-size: 16px; }
+.progress-top span { color: var(--ink-3); font-size: 14px; }
+.progress-hint { max-width: none; margin: 4px 0 0; color: var(--ink-3); font-size: 14px; }
+
+/* ---------- Pipeline (hero stepper) ---------- */
+.stepper { list-style: none; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.stepper li { margin: 0; position: relative; max-width: none; }
+.stepper li + li::before { content: ""; position: absolute; top: 21px; right: calc(50% + 26px); left: calc(-50% + 26px); height: 3px; border-radius: 2px;
+  background: linear-gradient(var(--fill-c, var(--done)), var(--fill-c, var(--done))) left / var(--fill) 100% no-repeat, repeating-linear-gradient(90deg, var(--rule-strong) 0 6px, transparent 6px 11px); transition: --fill .5s ease-out; }
+.stepper li[data-status="done"]::before { --fill: 100%; }
+.stepper li[data-status="current"]::before { --fill: 100%; --fill-c: var(--signal); }
+.stepper a { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; color: var(--ink-2); font-size: 14px; line-height: 1.3; padding: 0 4px; border-radius: 8px; text-decoration: none; }
+.stepper a:hover { color: var(--ink); }
+.stepper-dot { width: 46px; height: 46px; margin-bottom: 8px; border-radius: 50%; display: grid; place-items: center; font: 600 16px/1 var(--display); border: 3px solid var(--rule-strong); background: var(--bg); color: var(--ink-3); transition: background .25s, border-color .25s; }
+.stepper a:hover .stepper-dot { border-color: var(--ink-3); }
+.node-job { font: 12px/1.3 var(--mono); color: var(--ink-3); }
+[data-status="done"] > a .stepper-dot { background: var(--done); border-color: var(--done); color: var(--on-fill); }
+[data-status="current"] > a .stepper-dot { background: var(--signal); border-color: var(--signal); color: var(--on-fill); }
+[data-status="current"] > a { color: var(--ink); font-weight: 600; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- Buttons ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 18px; border-radius: 8px; font: 600 15px/1 var(--font); cursor: pointer; border: 1px solid transparent; transition: background .15s, border-color .15s; white-space: nowrap; text-decoration: none; }
+.btn-primary { background: var(--signal); color: var(--on-fill); }
+.btn-primary:hover { background: var(--signal-hover); color: var(--on-fill); }
+.btn-secondary { background: var(--bg); border-color: var(--rule-strong); color: var(--ink); }
+.btn-secondary:hover { border-color: var(--ink); color: var(--ink); }
+
+/* ---------- Checkbox ---------- */
+.checkbox { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; font-weight: 600; }
+.checkbox input { appearance: none; margin: 0; flex: none; width: 22px; height: 22px; border: 2px solid var(--rule-strong); border-radius: 6px; background: var(--bg); display: grid; place-items: center; cursor: pointer; transition: background .12s, border-color .12s; }
+.checkbox input::before { content: ""; width: 18px; height: 18px; background: var(--on-fill); -webkit-mask: var(--icon-check) center / 18px no-repeat; mask: var(--icon-check) center / 18px no-repeat; transform: scale(0); transition: transform .12s; }
+.checkbox input:checked { background: var(--done); border-color: var(--done); }
+.checkbox input:checked::before { transform: scale(1); }
+.checkbox:hover input:not(:checked) { border-color: var(--ink-3); }
+
+/* ---------- Badges ---------- */
+.badge { display: inline-flex; align-items: center; font: 600 13px/1.2 var(--font); padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: var(--panel); color: var(--ink-3); }
+.badge-done { background: var(--done-soft); color: var(--done); }
+.badge-current { background: var(--signal-soft); color: var(--signal-hover); }
+.badge-warning { background: var(--warn-soft); color: var(--warn); }
+.badge-danger { background: var(--err-soft); color: var(--err); }
+
+/* ---------- Section headers ---------- */
+.section-head { margin-bottom: 24px; }
+.section-head h2, .step-head h2 { font-size: 30px; line-height: 1.2; }
+h3 { font-size: 19px; line-height: 1.35; font-weight: 600; margin: 32px 0 10px; }
+h4 { font-size: 16px; line-height: 1.4; font-weight: 600; margin: 24px 0 8px; }
+
+/* ---------- Steps on the rail ---------- */
+.step { position: relative; padding-left: 76px; }
+.step::before { content: ""; position: absolute; left: 22px; top: 48px; bottom: calc(-1 * var(--gap)); width: 3px;
+  background: linear-gradient(var(--done), var(--done)) top / 100% var(--fill) no-repeat, repeating-linear-gradient(180deg, var(--rule-strong) 0 6px, transparent 6px 11px); transition: --fill .6s ease-out; }
+.step[data-status="done"]::before { --fill: 100%; }
+.step:not(:has(~ .step))::before { content: none; }
+.step-num { position: absolute; left: 0; top: 0; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; border: 3px solid var(--rule-strong); background: var(--bg); color: var(--ink-3); font: 600 18px/1 var(--display); transition: background .25s, border-color .25s; }
+.step[data-status="done"] .step-num { background: var(--done); border-color: var(--done); color: var(--on-fill); }
+.step[data-status="current"] .step-num { background: var(--signal); border-color: var(--signal); color: var(--on-fill); }
+.step-head { display: flex; align-items: center; gap: 16px; min-height: 48px; margin-bottom: 16px; }
+.step-head > div { flex: 1; min-width: 0; }
+
+/* ---------- You / Agent ---------- */
+/* Agent half is a slice of the hero terminal: dark background and the same ✻ "agent is working" marker */
+.split { display: grid; grid-template-columns: 2fr 3fr; margin: 0 0 24px; border-radius: 12px; overflow: hidden; font-size: 15px; line-height: 1.45; }
+.split > div { padding: 14px 18px 16px; }
+.split-you { background: var(--panel); }
+.split-agent { background: var(--code-bg); color: #fff; }
+.split-agent code { background: rgba(255, 255, 255, .1); color: var(--code-accent); }
+.split-label { display: block; margin-bottom: 4px; font: 600 14px/1.3 var(--font); color: var(--ink-3); }
+.split-agent .split-label { color: var(--code-warm); }
+.split-agent .split-label::before { content: "✻ "; }
+.split p { margin: 0; }
+.split-cmd { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; color: var(--ink-3); }
+.split-cmd code { background: var(--code-bg); color: var(--code-accent); font-weight: 700; padding: 3px 8px; }
+
+/* ---------- Hotkeys ---------- */
+kbd { display: inline-block; min-width: 1.8em; padding: 2px 5px; border: 1px solid var(--rule-strong); border-bottom-width: 2px; border-radius: 4px; background: var(--bg); color: var(--ink); font: 600 12px/1.3 var(--mono); text-align: center; }
+.keys-hint { display: block; margin-top: 4px; }
+.keys-hint kbd { font-size: 11px; padding: 0 4px; }
+@media (hover: none) { .keys-hint { display: none; } }
+dialog.keys { width: min(420px, calc(100vw - 32px)); border: 0; border-radius: 14px; padding: 24px 28px; color: var(--ink); background: var(--bg); box-shadow: 0 24px 64px rgba(15, 34, 49, .3); }
+dialog.keys h2 { font-size: 20px; margin-bottom: 16px; }
+dialog.keys dl { display: grid; grid-template-columns: max-content 1fr; gap: 10px 16px; align-items: baseline; margin: 0 0 20px; font-size: 15px; line-height: 1.4; }
+dialog.keys dd { margin: 0; color: var(--ink-2); }
+dialog.keys form { text-align: right; }
+
+/* ---------- Callouts ---------- */
+.callout { --c: var(--signal); display: flex; gap: 12px; padding: 14px 18px; border-radius: 10px; margin: 20px 0; background: var(--signal-soft); }
+.callout::before { content: ""; flex: none; width: 20px; height: 20px; margin-top: 3px; background: var(--c); -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; }
+.callout > div > :last-child { margin-bottom: 0; }
+.callout.info { --icon: var(--icon-info); }
+.callout.ok { --c: var(--done); --icon: var(--icon-success); background: var(--done-soft); }
+.callout.warn { --c: var(--warn); --icon: var(--icon-warning); background: var(--warn-soft); }
+.callout.err { --c: var(--err); --icon: var(--icon-error); background: var(--err-soft); }
+
+/* ---------- Statement grid (principles, context tips) ---------- */
+.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 40px; margin: 8px 0 24px; }
+.card { padding-top: 16px; border-top: 2px solid var(--ink); }
+.card h3 { margin: 0 0 8px; }
+.card p { margin: 0; color: var(--ink-2); }
+
+/* ---------- Accordion ---------- */
+details.acc { border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); margin: 12px 0; }
+details.acc > summary { list-style: none; cursor: pointer; padding: 14px 18px; font-size: 17px; line-height: 1.4; font-weight: 600; display: flex; align-items: center; gap: 12px; border-radius: 9px; }
+details.acc > summary:hover { background: var(--panel); }
+details.acc > summary::-webkit-details-marker { display: none; }
+details.acc > summary::after { content: ""; flex: none; width: 20px; height: 20px; margin-left: auto; background: var(--ink-3); -webkit-mask: var(--icon-chevron) center / contain no-repeat; mask: var(--icon-chevron) center / contain no-repeat; transition: transform .2s; }
+details.acc[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+details.acc[open] > summary::after { transform: rotate(90deg); }
+details.acc[open] > summary { border-bottom: 1px solid var(--rule); }
+details.acc > .acc-body { padding: 18px; }
+details.acc[open] > .acc-body { animation: rise .3s ease-out; }
+details.acc > .acc-body > :first-child { margin-top: 0; }
+details.acc > .acc-body > :last-child, details.acc > .acc-body > :last-child > li:last-child { margin-bottom: 0; }
+
+/* ---------- Code ---------- */
+pre { position: relative; margin: 12px 0 18px; background: var(--code-bg); color: var(--code-text); border-radius: 10px; padding: 0 20px 18px; overflow-x: auto; font: 13.5px/1.65 var(--mono); }
+pre[data-label]::before { content: attr(data-label); display: block; margin: 0 -20px 14px; padding: 12px 130px 12px 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+pre code { background: none; padding: 0; font: inherit; color: inherit; white-space: pre-wrap; word-break: break-word; }
+pre:not(.tree) > .language-prompt::before { content: "> "; color: var(--code-dim); }
+/* Mascot is a sibling of the block, not a child: pre and .demo clip children via overflow */
+.clawd-host { position: relative; }
+.clawd { position: absolute; z-index: 1; pointer-events: none; fill: var(--signal); shape-rendering: crispEdges; }
+.clawd .eye { fill: var(--code-bg); }
+.clawd-host:has(.clawd-peek) { margin-top: 72px; }
+.clawd-peek { top: -56px; right: 128px; }
+.clawd-host:has(.clawd-sit) { margin-top: 44px; }
+.clawd-sit { top: -60px; right: 140px; }
+.clawd-side { left: calc(100% - 12px); bottom: 8px; }
+.clawd-hug { left: calc(100% - 16px); bottom: 10px; }
+.clawd-host:has(.clawd-carry) { margin-bottom: 84px; }
+.clawd-carry { top: calc(100% - 6px); right: 40px; }
+@media (max-width: 1299px) { .clawd-side, .clawd-hug { display: none; } }
+@media (max-width: 767px) {
+  .clawd-host:has(.clawd-peek) { margin-top: 56px; }
+  .clawd-peek { width: 80px; height: 50px; top: -35px; right: 112px; }
+  .clawd-host:has(.clawd-sit) { margin-top: 84px; }
+  .clawd-sit { top: -78px; right: 24px; }
+}
+.copy { position: absolute; top: 6px; right: 8px; }
+@media (pointer: coarse) {
+  .copy, .demo-replay { min-height: 36px; }
+  .copy { top: 3px; }
+}
+.copy.copied { background: var(--done); color: var(--on-fill); }
+.hljs-keyword { color: var(--code-accent); font-weight: 700; }
+.hljs-built_in, .hljs-title { color: var(--code-warm); }
+.hljs-string { color: #95dfb4; }
+.hljs-variable, .hljs-template-variable { color: #ffd479; }
+.hljs-comment { color: var(--code-dim); font-style: italic; }
+.hljs-link { color: #b3bfff; text-decoration: underline; }
+.hljs-meta, .hljs-literal, .hljs-number { color: #dbb2ff; }
+
+/* ---------- Diagrams ---------- */
+figure.diagram { margin: 20px 0 24px; padding: 20px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); overflow-x: auto; }
+figure.diagram pre.mermaid { background: none; color: var(--ink-3); padding: 0; margin: 0; text-align: center; font-size: 12px; white-space: pre; }
+figure.diagram pre.mermaid::before { content: none; }
+figure.diagram pre.mermaid[data-processed] svg { max-width: 100%; height: auto; }
+figure.diagram figcaption { margin-top: 12px; font-size: 14px; line-height: 1.45; color: var(--ink-3); text-align: center; }
+
+/* ---------- Glossary terms ---------- */
+.term { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--ink-3); position: relative; }
+.term:hover { color: var(--signal); border-bottom-color: var(--signal); }
+.term:hover::after, .term:focus-visible::after { content: attr(data-tip); position: absolute; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: 280px; background: var(--ink); color: var(--bg); font: 400 13px/1.45 var(--font); padding: 8px 10px; border-radius: 6px; box-shadow: 0 6px 20px rgba(15, 34, 49, .2); z-index: 10; white-space: normal; pointer-events: none; }
+.term:hover::before, .term:focus-visible::before { content: ""; position: absolute; left: 10px; bottom: calc(100% + 3px); border: 6px solid transparent; border-top-color: var(--ink); border-bottom-width: 0; z-index: 10; }
+dl.glossary { display: grid; grid-template-columns: 200px 1fr; margin: 0; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+dl.glossary dt, dl.glossary dd { margin: 0; padding: 11px 16px; border-bottom: 1px solid var(--rule); font-size: 15px; line-height: 1.45; }
+dl.glossary dt { font-weight: 600; background: var(--panel); }
+dl.glossary dt:target, dl.glossary dt:target + dd { background: var(--signal-soft); }
+dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
+
+/* ---------- Step footer ---------- */
+.step-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--rule); }
+
+/* ---------- Toast ---------- */
+.toast { position: fixed; top: 16px; right: 16px; z-index: 50; width: 360px; max-width: calc(100vw - 32px); display: flex; align-items: flex-start; gap: 12px; padding: 14px 12px 14px 16px; background: var(--bg); border-radius: 12px; box-shadow: 0 10px 32px rgba(15, 34, 49, .18); opacity: 0; transform: translateY(-8px); pointer-events: none; transition: opacity .2s, transform .2s; }
+.toast.show { opacity: 1; transform: none; pointer-events: auto; }
+.toast-icon { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--done-soft); display: grid; place-items: center; }
+.toast-icon::before { content: ""; width: 20px; height: 20px; background: var(--done); -webkit-mask: var(--icon-success) center / contain no-repeat; mask: var(--icon-success) center / contain no-repeat; }
+.toast.err .toast-icon { background: var(--err-soft); }
+.toast.err .toast-icon::before { background: var(--err); -webkit-mask-image: var(--icon-error); mask-image: var(--icon-error); }
+.toast-body { flex: 1; min-width: 0; line-height: 1.4; }
+.toast-title { font-weight: 600; }
+.toast-desc { color: var(--ink-3); font-size: 14px; }
+.toast-close { flex: none; width: 29px; height: 29px; border: 0; border-radius: 6px; background: none; cursor: pointer; display: grid; place-items: center; }
+.toast-close:hover { background: var(--panel); }
+.toast-close::before { content: ""; width: 16px; height: 16px; background: var(--ink-3); -webkit-mask: var(--icon-cross) center / contain no-repeat; mask: var(--icon-cross) center / contain no-repeat; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 1100px) {
+  .node-job { display: none; }
+}
+@media (max-width: 767px) {
+  :root { --gap: 72px; }
+  .topbar { display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 20; height: 56px; padding: 0 12px 0 8px; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .topbar-title { flex: 1; font: 600 14px/1.2 var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .burger { width: 40px; height: 40px; padding: 10px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); cursor: pointer; }
+  .burger:hover { background: var(--panel); }
+  .burger svg { display: block; width: 20px; height: 20px; }
+  .sidebar { width: min(300px, 86vw); transform: translateX(-100%); visibility: hidden; transition: transform .25s, visibility 0s .25s; }
+  .sidebar.open { transform: none; visibility: visible; transition: transform .25s; }
+  main { margin-left: 0; padding: 36px 18px 96px; }
+  main > section, [id] { scroll-margin-top: 72px; }
+  .hero .lead { font-size: 18px; }
+  .progress-card { padding: 20px 16px; margin-left: -6px; margin-right: -6px; }
+  .stepper li + li::before { top: 16px; right: calc(50% + 20px); left: calc(-50% + 20px); }
+  .stepper-dot { width: 36px; height: 36px; font-size: 14px; }
+  .stepper a { font-size: 12px; }
+  .section-head h2, .step-head h2 { font-size: 24px; }
+  .cards { grid-template-columns: 1fr; gap: 24px; }
+  .split { grid-template-columns: 1fr; }
+  .demo { margin-left: -6px; margin-right: -6px; }
+  .demo-bar { background-image: none; padding-left: 8px; }
+  .demo-body { padding: 14px 14px 18px; font-size: 13px; }
+  .rounds { grid-template-columns: 1fr; gap: 6px; font-size: 13px; }
+  .round:not(:last-child) { margin-bottom: 8px; }
+  .round i { width: 12px; }
+  .step { padding-left: 50px; }
+  .step::before { left: 16px; top: 36px; }
+  .step-num { width: 36px; height: 36px; font-size: 15px; }
+  .step-head { flex-wrap: wrap; min-height: 36px; gap: 8px 12px; }
+  .step-head .badge { order: -1; }
+  .step-head > div { flex-basis: 100%; }
+  .step-nav { flex-wrap: wrap; }
+  .step-nav .checkbox { order: -1; flex-basis: 100%; }
+  .step-nav a { flex: 1; }
+  dl.glossary { grid-template-columns: 1fr; }
+  dl.glossary dt { border-bottom: 0; padding-bottom: 2px; }
+}
+@media (max-width: 640px) {
+  .stepper .node-label { display: none; }
+  .stepper [data-status="current"] .node-label { display: block; position: absolute; top: 46px; width: 120px; left: 50%; transform: translateX(-50%); }
+  .stepper { margin-bottom: 32px; }
+}
+[data-theme="dark"] :is(pre:not(.mermaid), .split) { box-shadow: 0 0 0 1px var(--rule); }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .demo-replay { display: none; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#content">К содержанию</a>
+
+<header class="topbar">
+  <button class="burger" id="burger" type="button" aria-label="Открыть оглавление" aria-expanded="false" aria-controls="sidebar">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="1"/><path d="M7.5 3.5v13"/></svg>
+  </button>
+  <span class="topbar-title">Frontend task flow</span>
+  <div class="ring" aria-hidden="true"><span data-pct>0%</span></div>
+</header>
+<div class="backdrop" id="backdrop" hidden></div>
+
+<!-- Icons follow the Kommo left-menu style: 20×20, 1px outline, currentColor -->
+<nav class="sidebar" id="sidebar" aria-label="Оглавление">
+  <div class="sidebar-head">
+    <span class="sidebar-title">Frontend task flow</span>
+    <button class="theme-btn" id="theme" type="button" aria-label="Тёмная тема" aria-pressed="false">
+      <svg class="moon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z"/></svg>
+      <svg class="sun" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="10" cy="10" r="3.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.3 4.3l1.4 1.4M14.3 14.3l1.4 1.4M4.3 15.7l1.4-1.4M14.3 5.7l1.4-1.4"/></svg>
+    </button>
+  </div>
+  <div class="toc" id="toc">
+    <ul>
+      <li><a href="#top"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3.5 8.5 10 3l6.5 5.5V16a.5.5 0 0 1-.5.5h-3.5V12h-5v4.5H4a.5.5 0 0 1-.5-.5z"/></svg>Начало</a></li>
+      <li><a href="#overview"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="5" cy="15" r="1.5"/><circle cx="15" cy="5" r="1.5"/><path d="M6.5 15H13a2.5 2.5 0 0 0 0-5H7a2.5 2.5 0 0 1 0-5h6.5"/></svg>Весь путь коротко</a></li>
+      <li><a href="#principles"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 16.5h14M3.5 7.5 10 3l6.5 4.5zM5.5 9.5v5M10 9.5v5M14.5 9.5v5"/></svg>Четыре принципа</a></li>
+      <li>
+        <button class="toc-group" type="button" aria-expanded="true" aria-controls="toc-steps"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13" rx=".6"/><path d="m6 7.5 1 1 2-2M6 12.5l1 1 2-2M11 8h3M11 13h3"/></svg>Шаги</button>
+        <ul class="sub" id="toc-steps">
+          <li><a href="#step-0" data-for="step-0">0. Настройка<span class="st" role="img"></span></a></li>
+          <li><a href="#step-1" data-for="step-1">1. Понять задачу<span class="st" role="img"></span></a></li>
+          <li><a href="#step-2" data-for="step-2">2. Разбить на тикеты<span class="st" role="img"></span></a></li>
+          <li><a href="#step-3" data-for="step-3">3. Написать код<span class="st" role="img"></span></a></li>
+          <li><a href="#step-4" data-for="step-4">4. Самопроверка<span class="st" role="img"></span></a></li>
+          <li><a href="#step-5" data-for="step-5">5. Аудит<span class="st" role="img"></span></a></li>
+        </ul>
+      </li>
+    </ul>
+    <ul aria-label="Справочник">
+      <li><a href="#slicing"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="5.5" cy="5.5" r="2"/><circle cx="5.5" cy="14.5" r="2"/><path d="M7.2 6.6 16.5 15M7.2 13.4 16.5 5"/></svg>Нарезка ветки на MR</a></li>
+      <li><a href="#context"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M10 3 2.5 7 10 11l7.5-4zM2.5 10.5l7.5 4 7.5-4M2.5 14l7.5 4 7.5-4"/></svg>Как беречь контекст</a></li>
+      <li><a href="#new-repo"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2.5 5.5a1 1 0 0 1 1-1h4l1.5 2h7.5a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM10 9v5M7.5 11.5h5"/></svg>Новый репозиторий</a></li>
+      <li><a href="#compare"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M10 3v14M6.5 17h7M3 6.5h14M5 6.5 3 11.5a2 2 0 0 0 4 0zM15 6.5l-2 5a2 2 0 0 0 4 0z"/></svg>Почему скиллы Мэтта</a></li>
+      <li><a href="#tools"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12.5 3a4 4 0 0 0-3.8 5.2l-5.4 5.4a1.5 1.5 0 0 0 2.1 2.1l5.4-5.4A4 4 0 0 0 16.4 6L14 8.4l-1.9-.5-.5-1.9L14 3.3a4 4 0 0 0-1.5-.3z"/></svg>Инструменты</a></li>
+      <li><a href="#glossary"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4.5 3.5h10a.5.5 0 0 1 .5.5v12.5H6A1.5 1.5 0 0 1 4.5 15zM4.5 15A1.5 1.5 0 0 1 6 13.5h9M7.5 6.5h5"/></svg>Глоссарий</a></li>
+    </ul>
+  </div>
+  <div class="sidebar-foot">
+    <div class="ring" role="img" aria-label="Прогресс по шагам"><span data-pct>0%</span></div>
+    <div>
+      <div>Пройдено <span data-count>0 из 6</span></div>
+      <button class="link-btn" id="reset" type="button">Сбросить прогресс</button>
+      <button class="link-btn keys-hint" id="keys-open" type="button">Горячие клавиши <kbd>?</kbd></button>
+    </div>
+  </div>
+</nav>
+
+<main id="content">
+
+<!-- ================= HERO ================= -->
+<section id="top" class="hero">
+  <h1>От постановки до мержа с&nbsp;Claude Code</h1>
+  <p class="lead">Ты ставишь задачу и принимаешь решения, а Claude Code пишет код, проверяет его и готовит MR к аудиту.</p>
+
+  <div class="actions">
+    <a class="btn btn-primary" id="continue" href="#step-0">Начать</a>
+    <a class="btn btn-secondary" href="#overview">Шпаргалка</a>
+  </div>
+
+  <!-- Lines are excerpts from real sessions, shortened and translated to Russian; the script only animates their appearance -->
+  <div class="clawd-host">
+  <figure class="demo" id="demo" aria-label="Реальные сессии Claude Code">
+    <div class="demo-bar">
+      <div class="demo-tabs" role="tablist" aria-label="Сессия">
+        <button class="demo-tab" type="button" role="tab" aria-selected="true" aria-controls="demo-grill">grill</button>
+        <button class="demo-tab" type="button" role="tab" aria-selected="false" aria-controls="demo-impl" tabindex="-1">implement</button>
+        <button class="demo-tab" type="button" role="tab" aria-selected="false" aria-controls="demo-mr" tabindex="-1">mr-ready</button>
+      </div>
+      <button class="demo-replay" type="button">↻ Ещё раз</button>
+    </div>
+    <div class="demo-stack">
+      <div class="demo-body" id="demo-grill" role="tabpanel">
+        <div class="tl tl-cmd"><div><b>/grill-with-docs</b> Разрабатываем фичу - кастомизация страницы бронирования. Изучи код через субагентов. Задай мне вопросы, чтобы полностью понять задачу. @task.md</div></div>
+        <div class="tl tl-run">Разведка запущена. Пока агенты работают — 5 параллельных.</div>
+        <div class="tl tl-ask">Q6 — В task.md «source не подключен», в Go-ТЗ такого термина нет. Как называем?</div>
+        <div class="tl tl-you"><div>q6 - (a). Код CRM уже говорит «source», переименование — лишний диф без пользы</div></div>
+        <div class="tl tl-ask">Раунд 4. Q17 — Будут ли картинки видны с публичной страницы?</div>
+        <div class="tl tl-you"><div>q17 - посмотри как реализованы аватары, аватары работают уже сейчас и грузятся</div></div>
+        <div class="tl tl-ok">Q17 закрыт фактом, спрашивать нечего: цепочка уже работает в проде.</div>
+        <div class="tl tl-run">Фронтир пуст. Пишу артефакты.</div>
+        <div class="tl tl-ok">CONTEXT.md (25 терминов), decomposition.md (22 принятых решения), 3 ADR</div>
+        <div class="tl tl-you"><div>Теперь давай заведем тикеты через jira cli. Сделай связи</div></div>
+        <div class="tl tl-ok">Заведён 21 тикет (BOOK-181 … BOOK-201) и 32 связи «Блокирует / Блокирован»</div>
+        <div class="tl tl-note">core-specs · 3 сентября 2026 · 24 вопроса · 48 минут до артефактов</div>
+        <div class="tl tl-end"></div>
+      </div>
+      <div class="demo-body" id="demo-impl" role="tabpanel" hidden>
+        <div class="tl tl-cmd"><div><b>/implement</b> разбери баги, прочитай комментарии на которые тикет ссылается. Задай вопросы, если есть. Затем поправь. Тикет - BOOK-341</div></div>
+        <div class="tl tl-ask">Я остановился до правок: репортёр сегодня закрыл тему в тикете. Правки ещё нужны?</div>
+        <div class="tl tl-you"><div>тикет актуальный. нужно только посмотреть на фреймы из фигма, сверить с реальным приложением, и после этого поправить</div></div>
+        <div class="tl tl-run">Открыл локальный фронт. Сначала посмотрю текущее состояние приложения, потом буду сверять его с Figma.</div>
+        <div class="tl tl-ok">Юнит-тесты: 274 из 274. E2E: 53 из 53.</div>
+        <div class="tl tl-ok">Все три бага из BOOK-341 исправлены и совпадают с фреймами Figma.</div>
+        <div class="tl tl-ok">Замеры в браузере: круг 40px, глиф 20px, цвет rgb(48,126,0), вложенного круга нет.</div>
+        <div class="tl tl-you"><div>3 как-будто нужно ревертнуть …/BOOK-341?focusedCommentId=509244</div></div>
+        <div class="tl tl-ok">Фикс 3 откатил: команда выбрала text-primary намеренно в BOOK-253, в части палитр цветной текст не читался.</div>
+        <div class="tl tl-note">scheduling-frontend · 13 октября 2026 · 15 минут от промпта до фикса</div>
+        <div class="tl tl-end"></div>
+      </div>
+      <div class="demo-body" id="demo-mr" role="tabpanel" hidden>
+        <div class="tl tl-cmd"><div><b>/mr-ready</b> Чек-лист отгрузки: …/BOOK-358?focusedCommentId=508876</div></div>
+        <div class="tl tl-ok">MR !31814 найден, чек-лист из Jira скачан.</div>
+        <div class="tl tl-run">Раунд 1: ревьюер запущен, жду его отчёт.</div>
+        <div class="tl tl-ok">Раунд 1: 6 тредов опубликовано (2 находки P2, 4 design notes). Fixer разбирает их.</div>
+        <div class="tl tl-ask">Тред #2: confirm загрузки идёт до PATCH/PUT. Если PATCH/PUT упадёт, новая картинка уже в профиле. Что делаем?</div>
+        <div class="tl tl-you"><div>Бэкенд вычистит картинки без confirm.</div></div>
+        <div class="tl tl-run">Раунд 3: одна находка (JSDoc называет потребителя), тред опубликован.</div>
+        <div class="tl tl-run">Раунд 4: 3 треда опубликованы, fixer работает.</div>
+        <div class="tl tl-ok">Ready: открытых находок нет, все треды с последним словом автора, проверки зелёные на HEAD.</div>
+        <div class="tl tl-ok">MR !31814 · ready · раундов: 5 · коммитов: 4 · тредов на резолв: 11</div>
+        <div class="tl tl-note">13 октября 2026 · 1 ч 44 мин · дальше аудит: ты снимаешь Draft</div>
+        <div class="tl tl-end"></div>
+      </div>
+    </div>
+  </figure>
+  <svg class="clawd clawd-peek" width="128" height="80" viewBox="0 0 16 10" aria-hidden="true"><path d="M2 0h12v7H2zM0 4h2v5H0zM14 4h2v5h-2z"/><path class="eye" d="M4 3h1v2H4zM11 3h1v2h-1z"/></svg>
+  </div>
+
+  <div class="why">
+    <p>Агент пишет код быстрее нас, но результат сильно зависит от того, как с ним работать. Один разработчик получает аккуратный MR с первого раза, другой проходит несколько кругов аудита на ту же задачу. Мы попробовали разные подходы на реальных задачах и собрали в один процесс то, что сработало.</p>
+    <div class="rounds" aria-hidden="true">
+      <span class="round-label">с первого раза</span>
+      <div class="round"><span>MR</span><i></i><span>аудит</span><i></i><span class="ok">мерж</span></div>
+      <span class="round-label">несколько кругов</span>
+      <div class="round"><span>MR</span><i></i><span class="again">аудит</span><i></i><span class="again">аудит</span><i></i><span class="again">аудит</span><i></i><span class="ok">мерж</span></div>
+    </div>
+    <div class="why-stat">
+      <div class="why-nums">
+        <div><strong>62%</strong>полгода до самопроверки, 224&nbsp;MR</div>
+        <span class="why-arrow" aria-hidden="true">→</span>
+        <div><strong>79%</strong>с сентября 2026, 52&nbsp;MR</div>
+      </div>
+      <p>Доля наших MR, которые прошли аудит не больше чем за один круг. Выборка пока маленькая, а за те же месяцы поменялись аудиторы и размер MR. Поэтому это наблюдение, а не доказательство.</p>
+    </div>
+  </div>
+
+  <div class="progress-card">
+    <div class="progress-top"><strong>Твой прогресс</strong><span>Пройдено <span data-count>0 из 6</span></span></div>
+    <p class="progress-hint">Проходи шаги по порядку и отмечай пройденные. Прогресс сохраняется в браузере.</p>
+    <div class="bar" role="progressbar" aria-label="Прогресс по шагам" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" id="bar"><i></i></div>
+    <ol class="stepper" id="stepper" aria-label="Шаги"></ol>
+  </div>
+</section>
+
+<!-- ================= OVERVIEW ================= -->
+<section id="overview">
+  <div class="section-head"><h2>Весь путь коротко</h2></div>
+  <p>Цель у процесса простая: меньше кругов аудита и одинаково понятные MR. Все открытые вопросы по задаче мы закрываем до первой строчки кода: как должна работать фича, какой вариант UX выбрать, что вернёт бэкенд. А всё, что может найти машина, она находит до аудитора. Поэтому аудитор получает MR в одном и том же виде от любого разработчика.</p>
+  <div class="callout info"><div><p><strong>Процесс обязательный, как стек проекта:</strong> аудиторы и тестировщики рассчитывают, что задача прошла именно эти шаги и MR пришёл в привычном виде. Зато придумывать ничего не нужно. На каждом шаге написано, что делать, какую команду запустить, зачем она нужна и как понять, что шаг закончен. Если нашёл приём лучше, пробуй и приноси, обновим флоу для всех.</p></div></div>
+  <p>В основе лежат <a href="https://github.com/mattpocock/skills">скиллы Мэтта Покока</a>. Своё мы добавили только там, где их не хватает: самопроверка MR перед аудитом и работа с Jira и GitLab. Почему не Superpowers, OpenSpec или Spec Kit – в <a href="#compare">сравнении</a>.</p>
+
+  <h3>Шпаргалка</h3>
+  <p>Весь путь – шесть шагов. Возвращайся к этой таблице, когда забыл, что дальше.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Шаг</th><th>Что делаешь ты</th><th>Команда</th><th>Готово, когда</th></tr></thead>
+    <tbody>
+      <tr><td><a href="#step-0">0. Настройка</a></td><td>один раз на репозиторий</td><td><code>setup.sh</code></td><td><code>/skills</code> и <code>/mcp</code> показывают нужное</td></tr>
+      <tr><td><a href="#step-1">1. Понять задачу</a></td><td>пишешь <code>task.md</code>, отвечаешь на вопросы агента</td><td><code>/grill-with-docs</code></td><td>открытых вопросов не осталось</td></tr>
+      <tr><td><a href="#step-2">2. Разбить на тикеты</a></td><td>проверяешь декомпозицию</td><td><code>/to-spec</code> → <code>/to-tickets</code></td><td>тикеты в Jira со связями</td></tr>
+      <tr><td><a href="#step-3">3. Написать код</a></td><td>по сессии на тикет</td><td><code>/implement</code></td><td>проверки зелёные, стенд совпадает с макетом</td></tr>
+      <tr><td><a href="#step-4">4. Самопроверка</a></td><td>коммит, Draft MR</td><td><code>/checklist-deploy</code> → <code>/mr-ready</code></td><td>отчёт <code>ready</code>, CI зелёный</td></tr>
+      <tr><td><a href="#step-5">5. Аудит</a></td><td>снимаешь Draft</td><td><code>/mr-ready</code> на замечания</td><td>MR смержен, треды закрыты</td></tr>
+    </tbody>
+  </table></div>
+
+  <figure class="diagram">
+<pre class="mermaid">flowchart LR
+  S1["1. Понять задачу"] --> S2["2. Тикеты"] --> S3["3. Код"] --> S4["4. Самопроверка"] --> S5["5. Аудит"]
+  S4 -. "stuck / cap: решаешь сам" .-> S3
+  S5 -. "есть замечания" .-> S4</pre>
+    <figcaption>Шаги 1–5 идут по порядку. Если самопроверка застряла, ты возвращаешься к коду. Замечания аудитора снова идут через самопроверку.</figcaption>
+  </figure>
+
+  <div class="callout info"><div><p>Весь путь мы пройдём на одном примере: задача <strong>PROJ-100 «Клиент выбирает цвет кнопки на странице бронирования»</strong>. Ключи тикетов, пути и имена в примерах – шаблоны, подставляй свои.</p></div></div>
+</section>
+
+<!-- ================= PRINCIPLES ================= -->
+<section id="principles">
+  <div class="section-head"><h2>Четыре принципа</h2></div>
+  <p>Если какой-то шаг кажется лишним, загляни сюда: скорее всего, он нужен ради одного из этих принципов.</p>
+  <div class="cards">
+    <div class="card"><h3>Всё важное – в файлах, а не в чате</h3><p>Решения живут в <code>task.md</code>, спеке и тикетах. Поэтому любую <a class="term" href="#g-session" data-tip="Один разговор с агентом. Новая сессия ничего не помнит о предыдущей, кроме файлов.">сессию</a> можно закрыть и начать заново без потерь.</p></div>
+    <div class="card"><h3>Один тикет – один MR</h3><p>Такой MR <a class="term" href="#g-auditor" data-tip="Разработчик, который проводит аудит MR перед мержем.">аудитор</a> читает за один подход. Тикет – тонкий срез фичи, который проверяется сам по себе (<a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/tracer-bullet-tickets.md">«Трассирующие тикеты»</a>).</p></div>
+    <div class="card"><h3>Слова агента – гипотеза</h3><p>«Готово», «тесты прошли», «так и было» мы принимаем только вместе с командой и её выводом. Строка «4 passed» в ответе агента – тоже только слова.</p></div>
+    <div class="card"><h3>Автор и ревьюер – разные сессии</h3><p>Ревьюер со <a class="term" href="#g-context" data-tip="Всё, что агент видит в сессии: инструкции, диалог, прочитанные файлы. Ограничен.">свежим контекстом</a> не защищает код, который написал сам (<a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/writer-reviewer.md">«Писатель и рецензент»</a>).</p></div>
+  </div>
+</section>
+
+<!-- ================= STEP 0 ================= -->
+<section id="step-0" class="step" data-step>
+  <span class="step-num" aria-hidden="true">0</span>
+  <header class="step-head">
+    <div><h2>Настройка</h2></div>
+    <span class="badge step-status"></span>
+  </header>
+  <div class="split">
+    <div class="split-you"><span class="split-label">Ты</span><p>один раз на репозиторий</p><div class="split-cmd"><code>setup.sh</code></div></div>
+    <div class="split-agent"><span class="split-label">Скрипт</span><p>ставит плагины и настройки Claude Code. После этого агент сам ходит в Jira и GitLab и открывает стенд в браузере</p></div>
+  </div>
+
+  <p>Настройку делают один раз в каждом репозитории, где ты работаешь, и занимает она минут 15. Скрипт ставит плагины и настройки Claude Code только для этого репозитория. Глобально он делает три вещи:</p>
+  <ol>
+    <li>ставит через Homebrew три CLI: <code>jq</code>, <code>glab</code>, <code>jira-cli</code>;</li>
+    <li>добавляет один блок с правилами агента в <code>~/.claude/CLAUDE.md</code>;</li>
+    <li>включает auto mode в <code>~/.claude/settings.json</code>. Claude Code читает этот режим только из пользовательских настроек. Если ты уже выбрал свой режим, скрипт его не меняет.</li>
+  </ol>
+  <p>Всё остальное в этих файлах остаётся как есть.</p>
+
+  <ol>
+    <li>Склонируй репозиторий флоу:
+<pre data-label="клонировать флоу"><code class="language-bash">git clone &lt;адрес репозитория флоу&gt; ~/frontend-task-flow</code></pre></li>
+    <li>Перейди в репозиторий, в котором будешь работать:
+<pre data-label="перейти в рабочий репозиторий"><code class="language-bash">cd ~/work/&lt;репозиторий&gt;</code></pre></li>
+    <li>Запусти скрипт настройки, передав адрес своей Jira и хост своего GitLab. Без этих аргументов скрипт остановится с ошибкой:
+<div class="clawd-host">
+<pre data-label="запустить настройку"><code class="language-bash">bash ~/frontend-task-flow/setup.sh --jira https://&lt;компания&gt;.atlassian.net --gitlab gitlab.&lt;компания&gt;.com</code></pre>
+<svg class="clawd clawd-sit" width="108" height="78" viewBox="0 0 18 13" aria-hidden="true"><path d="M3 2h12v8H3zM1 6h2v2H1zM15 6h2v2h-2zM16 1h2v5h-2zM4 10h1v3H4zM6 10h1v3H6zM11 10h1v3h-1zM13 10h1v3h-1z"/><path class="eye" d="M5 4h1v2H5zM12 4h1v2h-1z"/></svg>
+</div></li>
+  </ol>
+
+  <p>После этого агент сможет сам ходить в Jira и GitLab из терминала, открывать стенд в браузере и сравнивать его с макетом. В репозитории появятся скиллы Мэтта Покока и наши скиллы самопроверки. Коммитить ничего не нужно: плагины и настройки записываются в <code>.claude/settings.local.json</code>, а все файлы скрипта скрыты от git и в <code>git status</code> не появятся.</p>
+  <p>Запускать скрипт повторно безопасно: твои настройки он не перезаписывает. Поэтому обновить флоу просто: сделай <code>git pull</code> в <code>~/frontend-task-flow</code> и запусти скрипт ещё раз с теми же аргументами.</p>
+
+  <div class="callout warn"><div><p><strong>Windows:</strong> работай в WSL (Ubuntu) и поставь туда <a href="https://brew.sh">Homebrew</a>. Для браузерных проверок агенту понадобится Chrome внутри WSL. Если какой-то шаг скрипта упал, выполни его команды вручную: они лежат в <a href="setup.sh"><code>setup.sh</code></a>, шаги пронумерованы от 1/6 до 6/6, как в таблице ниже.</p></div></div>
+  <div class="callout info"><div><p>Если в репозитории нет файла <code>docs/agents/issue-tracker.md</code>, значит, его ещё не подключили к флоу. Тогда сначала пройди <a href="#new-repo">Настройку нового репозитория</a>: её делают один раз на всю команду.</p></div></div>
+  <div class="callout ok"><div><p><strong>Готово, когда:</strong> в репозитории <code>claude</code> → <code>/skills</code> показывает <code>mattpocock-skills:grill-with-docs</code> и <code>segodnya-agents:mr-ready</code>, а <code>/mcp</code> – <code>chrome-devtools ✔ connected</code>.</p></div></div>
+
+  <details class="acc">
+    <summary>Подробнее: что именно ставит скрипт</summary>
+    <div class="acc-body">
+      <div class="table-wrap"><table>
+        <thead><tr><th>Шаг</th><th>Что ставится</th><th>Зачем</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>jq</code>, <code>glab</code>, <code>jira-cli</code> через Homebrew</td><td>агент работает с GitLab и Jira (см. <a href="#tools">Инструменты</a>)</td></tr>
+          <tr><td>2</td><td><code>.claude/settings.local.json</code>; auto mode в <code>~/.claude/settings.json</code>; блок правил в <code>~/.claude/CLAUDE.md</code></td><td>модели и режим работы (таблица ниже); правила агента из <a href="claude-rules.md"><code>claude-rules.md</code></a></td></tr>
+          <tr><td>3</td><td>логины <code>glab</code> и <code>jira</code></td><td>единственный интерактивный шаг. <code>glab auth login</code> скрипт запускает сам. Для Jira печатает подсказку: создать API-токен в настройках безопасности аккаунта и выполнить <code>jira init --server &lt;адрес Jira&gt;</code></td></tr>
+          <tr><td>4</td><td>плагины <code>mattpocock-skills</code>, <code>typescript-lsp</code>, <code>context-mode</code>, <code>segodnya-agents</code> (scope <code>local</code>)</td><td><a class="term" href="#g-skill" data-tip="Упакованная инструкция под конкретную задачу. Вызывается командой /имя.">скиллы</a> постановки и реализации, навигация по TS, экономия контекста, самопроверка MR</td></tr>
+          <tr><td>5</td><td>команда <code>/checklist-deploy</code></td><td>чек-лист перед отгрузкой. Берётся из репозитория проекта, если она там уже есть, иначе из папки флоу</td></tr>
+          <tr><td>6</td><td><a class="term" href="#g-mcp" data-tip="Способ подключить к агенту внешний инструмент, например браузер.">MCP</a> <code>chrome-devtools</code> (scope <code>local</code>)</td><td>агент открывает стенд, делает скриншоты, измеряет вёрстку</td></tr>
+        </tbody>
+      </table></div>
+      <p>Файлы, которые скрипт создаёт в репозитории, он дописывает в <code>.git/info/exclude</code>. Блок правил в <code>~/.claude/CLAUDE.md</code> обрамлён метками <code>frontend-task-flow:start</code> / <code>end</code>: при повторном запуске скрипт заменяет только его.</p>
+    </div>
+  </details>
+  <details class="acc">
+    <summary>Подробнее: поля настроек</summary>
+    <div class="acc-body">
+      <div class="table-wrap"><table>
+        <thead><tr><th>Поле</th><th>Значение</th><th>Зачем</th></tr></thead>
+        <tbody>
+          <tr><td><code>model</code></td><td><code>opus[1m]</code></td><td>основная сессия планирует и пишет код; с окном 1M длинная сессия обходится без сжатия</td></tr>
+          <tr><td><code>effortLevel</code></td><td><code>high</code></td><td>больше рассуждений перед ответом, меньше поспешных правок</td></tr>
+          <tr><td><code>env.CLAUDE_CODE_SUBAGENT_MODEL</code></td><td><code>sonnet</code></td><td><a class="term" href="#g-subagent" data-tip="Агент, которого основная сессия запускает на подзадачу. У него свой контекст, назад он возвращает только вывод.">субагенты</a> (разведка, ревьюеры) дешевле и быстрее</td></tr>
+          <tr><td><code>env.GITLAB_HOST</code></td><td>хост из аргумента <code>--gitlab</code></td><td><code>glab</code> работает и вне папки репозитория</td></tr>
+          <tr><td><code>permissions.defaultMode</code></td><td><code>auto</code></td><td>агент не спрашивает разрешения на каждое чтение файла и запуск тестов. Лежит в <code>~/.claude/settings.json</code>, остальные поля – в <code>.claude/settings.local.json</code></td></tr>
+          <tr><td><code>permissions.deny</code></td><td><code>EnterPlanMode</code>, <code>ExitPlanMode</code></td><td>план пишется в markdown-файл, а не во встроенный plan mode: файл переживает сессию</td></tr>
+          <tr><td><code>outputStyle</code></td><td><code>Concise</code></td><td>короткие ответы: результат без пересказа</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </details>
+</section>
+
+<!-- ================= STEP 1 ================= -->
+<section id="step-1" class="step" data-step>
+  <span class="step-num" aria-hidden="true">1</span>
+  <header class="step-head">
+    <div><h2>Понять задачу</h2></div>
+    <span class="badge step-status"></span>
+  </header>
+  <div class="split">
+    <div class="split-you"><span class="split-label">Ты</span><p>пишешь <code>task.md</code>, отвечаешь на вопросы агента</p><div class="split-cmd"><code>/grill-with-docs</code></div></div>
+    <div class="split-agent"><span class="split-label">Агент</span><p>изучает код через субагентов, задаёт вопросы раундами по 5–7 штук и сразу записывает решения в файлы</p></div>
+  </div>
+
+  <p>Если агент понял задачу не так, как ты, он уверенно сделает не то, и выяснится это только на аудите. Поэтому до кода мы проговариваем задачу с агентом, пока у него не кончатся вопросы. Этот разговор называется <a class="term" href="#g-grill" data-tip="Режим, в котором агент задаёт вопросы, пока не поймёт задачу полностью.">grill</a>: агент изучает код, задаёт вопросы и сразу записывает решения в файлы. У Мокевнина этот приём описан в главе <a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/grilling.md">«Гриллинг»</a>.</p>
+  <p>Если правка крошечная, разговор не нужен: просто попроси агента и посмотри на дифф. Всё остальное начинается с grill:</p>
+  <ol>
+    <li>Собери папку фичи в <code>specs</code> и напиши <code>task.md</code> на 10–20 строк: что делаем, зачем и в каких репозиториях.</li>
+    <li>Открой новую сессию в корне репозитория проекта и запусти <code>/mattpocock-skills:grill-with-docs</code> с промптом ниже.</li>
+    <li>Отвечай на вопросы агента, пока они не кончатся. Обычно это несколько раундов по 5–7 вопросов.</li>
+  </ol>
+
+<pre data-label="промпт grill"><code class="language-prompt">/mattpocock-skills:grill-with-docs Разрабатываем PROJ-100 — выбор цвета кнопки на странице бронирования. План в task.md, макеты в images. Изучи код через субагентов, задай вопросы, чтобы полностью понять задачу. CONTEXT.md и ADR пиши в папку фичи. @specs/&lt;путь фичи&gt;/task.md</code></pre>
+
+  <div class="callout info"><div><p><strong>PROJ-100.</strong> Агент спросил, давать ли клиенту любой цвет или только палитру. Ты выбрал палитру из дизайн-системы: на произвольном цвете текст кнопки может стать нечитаемым. Агент записал это решение в ADR-0001, а в <code>CONTEXT.md</code> добавил термины «акцентный цвет» и «палитра».</p></div></div>
+
+  <div class="callout ok"><div><p><strong>Готово, когда:</strong> в <code>task.md</code> не осталось открытых вопросов к тебе, <code>CONTEXT.md</code> создан.</p></div></div>
+
+  <details class="acc">
+    <summary>One shot, grill или wayfinder</summary>
+    <div class="acc-body">
+      <figure class="diagram">
+<pre class="mermaid">flowchart TB
+  start(["Новая задача"]) --> tiny{"Дифф крошечный?<br/>быстро прочитать, дёшево переделать"}
+  tiny -- да --> one["One shot<br/>просто попроси агента.<br/>Сверяешься уже по диффу"]
+  tiny -- нет --> grill["/grill-with-docs<br/>договариваетесь до кода"]
+  grill --> big{"Задача больше,<br/>чем казалось?"}
+  big -- да --> way["/wayfinder<br/>превращает разговор в карту решений"]
+  big -- нет --> go["Продолжаешь grill"]</pre>
+        <figcaption>Крошечному диффу хватит one shot, остальному нужен grill. Если grill расползается, переходи в wayfinder.</figcaption>
+      </figure>
+      <p>Grill нужен, чтобы агент не построил не то. Если переделать дёшево, этот риск ничего не стоит: проще посмотреть на дифф и поправить. Поэтому мелкие правки мы делаем сразу, а всё остальное начинаем с <code>/grill-with-docs</code>.</p>
+      <p><code>/wayfinder</code> нужен для больших задач с высокой неопределённостью, которые не помещаются в одну сессию. Даже такую задачу лучше начинать с grill: часто она оказывается проще, чем казалась, и карта с тикетами решений не понадобится. Но если grill расползается (вопросы не кончаются, тумана больше, чем ждали), скажи агенту:</p>
+<pre data-label="переход в wayfinder"><code class="language-prompt">/mattpocock-skills:wayfinder давай превратим это в карту</code></pre>
+      <p>Он соберёт из разговора карту решений, и дальше вы пройдёте её по одному вопросу за раз.</p>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary>Папка фичи и task.md</summary>
+    <div class="acc-body">
+      <p>Постановка хранится в общем репозитории спецификаций. Он подключён сабмодулем <code>specs</code> в <strong>репозиторий проекта</strong>. Код фичи может лежать и в других репозиториях: их мы называем <strong>репозиториями кода</strong>. Часто это один и тот же репозиторий. Папку фичи заводи по структуре из README репозитория спецификаций:</p>
+<pre class="tree" data-label="структура папки фичи"><code class="language-prompt">specs/&lt;группа&gt;/&lt;репозиторий&gt;/frontend/&lt;namespace&gt;/&lt;feature&gt;/
+├── task.md            # пишешь ты: что и зачем
+├── CONTEXT.md         # глоссарий – появится после grill (в скиллах 1.3+ – GLOSSARY.md)
+├── images/*.png       # скриншоты макетов
+└── docs/
+    ├── prd.md         # PRD продукта: зачем фича и для кого
+    ├── backend/*.md   # НТЗ бэкенда – контракт API
+    └── adr/           # решения с причинами – появятся после grill</code></pre>
+      <p>Положи в папку всё, что у тебя есть: PRD, НТЗ бэкенда, макеты. Чем больше агент прочитает сам, тем меньше вопросов задаст тебе.</p>
+      <p><code>task.md</code> пишешь ты, хватит 10–20 строк. В нём нужны три вещи:</p>
+      <ol>
+        <li>что сделать и зачем;</li>
+        <li><strong>с чем работаем</strong>: локальные пути к репозиториям (<code>@~/work/&lt;репозиторий&gt;/frontend/…</code>), а не ссылки на GitLab: по путям агент читает код сам;</li>
+        <li>последней строкой: «исследование поручи субагентам, чтобы оставить основной контекст чистым».</li>
+      </ol>
+    </div>
+  </details>
+
+  <details class="acc">
+    <summary>Что будет в сессии grill</summary>
+    <div class="acc-body">
+      <p>Открой новую сессию в корне репозитория проекта, чтобы агенту были видны и код, и <code>specs</code>. Сначала агент несколько минут изучает код через субагентов, так что не пугайся тишины. Потом он задаёт вопросы раундами по 5–7 штук и к каждому предлагает свою рекомендацию. Отвечай одним сообщением на весь раунд. Решения агент сразу записывает в файлы, поэтому к концу разговора у тебя будет <code>task.md</code> без открытых вопросов и глоссарий <code>CONTEXT.md</code>. На решения, которые трудно отменить и неочевидно объяснить, агент предложит <a class="term" href="#g-adr" data-tip="Короткая запись архитектурного решения: контекст, решение, причины, последствия.">ADR</a>.</p>
+      <div class="callout warn"><div><p>Рекомендацию агента тоже проверяй: это гипотеза. На одной реальной задаче разработчик отклонил 5 рекомендаций из 24 и ещё 2 поправил.</p></div></div>
+      <p>Если вопрос не к тебе, а к бэкенду или дизайнеру, агент вынесет его в <code>task.md</code>, в секцию по адресату. Когда получишь ответ, вставь его в файл и продолжай в новой сессии. А если разговор ушёл не туда, скажи:</p>
+<pre data-label="остановить разговор"><code class="language-prompt">Стой. Запиши всё, что решили, в план.</code></pre>
+      <figure class="diagram">
+<pre class="mermaid">sequenceDiagram
+  participant Р as Разработчик
+  participant А as Агент
+  participant С as Субагенты
+  Р->>А: task.md + grill-with-docs
+  А->>С: разведка кода (параллельно)
+  С-->>А: как устроено сейчас
+  loop раунды по 5–7 вопросов
+    А->>Р: ❓ вопрос + ➡️ рекомендация
+    Р->>А: ответы одним сообщением
+    А->>А: пишет решения в task.md / CONTEXT.md / ADR
+  end</pre>
+        <figcaption>Агент разведывает код через субагентов, потом задаёт вопросы раундами и пишет решения в файлы.</figcaption>
+      </figure>
+      <p>Решённый вопрос в <code>task.md</code> выглядит так: <code>~~iframe или вёрстка?~~ **решено:** вёрстка [ADR-0001]</code>.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ================= STEP 2 ================= -->
+<section id="step-2" class="step" data-step>
+  <span class="step-num" aria-hidden="true">2</span>
+  <header class="step-head">
+    <div><h2>Разбить на тикеты</h2></div>
+    <span class="badge step-status"></span>
+  </header>
+  <div class="split">
+    <div class="split-you"><span class="split-label">Ты</span><p>проверяешь декомпозицию</p><div class="split-cmd"><code>/to-spec</code> → <code>/to-tickets</code></div></div>
+    <div class="split-agent"><span class="split-label">Агент</span><p>собирает спеку, режет её на вертикальные срезы и после твоего «ок» заводит тикеты в Jira</p></div>
+  </div>
+
+  <p>Когда вопросы кончились, задачу нужно декомпозировать, и всегда до начала кода. Маленький тикет – это маленький MR: аудитор прочитает его за один подход, а тестировщику проще проверить небольшую правку. Разрезать мелко получается не всегда, но мы к этому стремимся.</p>
+  <div class="callout info"><div><p>Делай это в той же сессии, где был grill: весь контекст разговора уже у агента, и ему ничего не придётся вспоминать.</p></div></div>
+
+  <h3>1. Спека</h3>
+<div class="clawd-host">
+<pre data-label="команда to-spec"><code class="language-prompt">/mattpocock-skills:to-spec</code></pre>
+<svg class="clawd clawd-side" width="66" height="60" viewBox="-2 0 11 10" aria-hidden="true"><path d="M0 0h7v8H0zM-2 3h2v1h-2zM-2 5h2v1h-2zM7 4h2v2H7zM3 8h1v2H3zM5 8h1v2H5z"/><path class="eye" d="M3 2h1v2H3z"/></svg>
+</div>
+  <p>Агент соберёт из разговора <a class="term" href="#g-spec" data-tip="Итог grill одним документом: проблема, решение, user stories, решения, тесты.">спеку</a>: проблема, решение, user stories, принятые решения, как тестировать. Нового интервью не будет: агент только сверит с тобой, на каких границах модулей проверять фичу тестами. Спека публикуется комментарием в PROJ-100.</p>
+
+  <h3>2. Тикеты</h3>
+  <p>Чтобы агент сразу заполнил поля Jira, запусти <code>to-tickets</code> так:</p>
+<pre data-label="промпт to-tickets"><code class="language-prompt">/mattpocock-skills:to-tickets Заведи тикеты дочерними к PROJ-100. Проставь связи «Блокирует» по графу. Поля: Проект — &lt;проект&gt;, Гильдия — Frontend, assign на меня.</code></pre>
+  <p>Агент разрежет спеку на <a class="term" href="#g-slice" data-tip="Тикет, который проходит через все слои (данные, API, UI, тесты) и проверяется сам по себе.">вертикальные срезы</a>: каждый проходит через все слои, проверяется сам по себе и помещается в одну сессию. Он покажет список: проверь размер тикетов и связи между ними. Иногда даже один срез – это несколько тысяч строк. Тогда сначала попроси срез потоньше: например, сперва один цвет по умолчанию, потом палитра. После твоего «ок» агент заведёт тикеты в Jira.</p>
+
+  <div class="callout info"><div><p><strong>PROJ-100.</strong> Агент предложил три среза. PROJ-101: кнопка на странице бронирования берёт акцентный цвет из настроек. PROJ-102: текст кнопки читается на любом цвете палитры. PROJ-103: клиент выбирает цвет из палитры в настройках. PROJ-101 блокирует два других.</p></div></div>
+
+  <div class="callout ok"><div><p><strong>Готово, когда:</strong> все тикеты в Jira, связи «Блокирует» проставлены.</p></div></div>
+
+  <details class="acc">
+    <summary>Промпт для крупного тикета</summary>
+    <div class="acc-body">
+      <p>Если какой-то тикет выглядит крупным, попроси разрезать его:</p>
+<pre data-label="промпт разрезать тикет"><code class="language-prompt">В PROJ-103 будет много кода, аудитору тяжело читать. Найди через субагентов срезы потоньше, каждый со своим видимым результатом. Если тонко не режется, предложи стопку по слоям, где у каждого MR уже есть потребитель.</code></pre>
+      <p>Разрез по слоям (API, модель, UI) – запасной вариант. Слой без потребителя аудитор не сможет оценить, а линтер мёртвого кода упадёт. Подробнее о стопке – в <a href="#slicing">Нарезке ветки на MR</a>.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ================= STEP 3 ================= -->
+<section id="step-3" class="step" data-step>
+  <span class="step-num" aria-hidden="true">3</span>
+  <header class="step-head">
+    <div><h2>Написать код</h2></div>
+    <span class="badge step-status"></span>
+  </header>
+  <div class="split">
+    <div class="split-you"><span class="split-label">Ты</span><p>по сессии на тикет</p><div class="split-cmd"><code>/implement</code></div></div>
+    <div class="split-agent"><span class="split-label">Агент</span><p>пишет код, гоняет проверки и сравнивает стенд с макетом</p></div>
+  </div>
+
+  <p>На каждый тикет мы открываем <strong>новую сессию в репозитории кода</strong>: так агент начинает с чистого контекста и думает только об этом тикете.</p>
+<div class="clawd-host">
+<pre data-label="промпт implement"><code class="language-prompt">/mattpocock-skills:implement Работаем над PROJ-103 (клиент выбирает цвет из палитры). Спека — в PROJ-100. Сначала перечитай тикет, спеку и макеты, задай вопросы. До правок прогони линтер и тесты, чтобы отличать свои ошибки от старых. Исследование и независимые блоки — субагентам. В конце открой стенд и сверь его с макетами.</code></pre>
+<svg class="clawd clawd-hug" width="114" height="60" viewBox="0 0 19 10" aria-hidden="true"><path d="M5 0h12v8H5zM1 4h4v1H1zM0 2h1v3H0zM17 4h2v2h-2zM6 8h1v2H6zM8 8h1v2H8zM13 8h1v2h-1zM15 8h1v2h-1z"/><path class="eye" d="M7 3h1v1H7zM8 2h1v1H8zM9 3h1v1H9zM12 3h1v1h-1zM13 2h1v1h-1zM14 3h1v1h-1z"/></svg>
+</div>
+  <div class="callout warn"><div><p>Фразу «сначала задай вопросы» не пропускай. Без неё скилл сразу начинает писать код, и ты не успеешь поправить его понимание задачи. Остальные фразы промпта тоже нужны: сам скилл не делает baseline и не открывает стенд.</p></div></div>
+  <p>Дальше агент работает сам. От тебя нужно ответить на его вопросы и посмотреть на результат.</p>
+
+  <div class="callout info"><div><p><strong>PROJ-103.</strong> Агент спросил, сохранять цвет сразу при выборе или по кнопке «Сохранить», как остальные настройки. Ты выбрал кнопку. В конце агент показал вывод <code>tsc</code>, <code>eslint</code>, <code>jest</code> и скриншот стенда рядом с макетом.</p></div></div>
+
+  <div class="callout ok"><div><p><strong>Готово, когда:</strong> проверки зелёные, скриншот стенда совпадает с макетом, агент показал команды и их вывод.</p></div></div>
+
+  <details class="acc">
+    <summary>Что делает агент</summary>
+    <div class="acc-body">
+      <p>Скилл даёт каркас: проверки по ходу работы и ревью в конце. Остальное добавляет наш промпт.</p>
+      <ol>
+        <li>Запускает линтер и тесты до правок, чтобы отличать свои ошибки от старых.</li>
+        <li>Пишет код, независимые части – параллельными субагентами.</li>
+        <li>Гоняет <code>tsc</code>, <code>eslint</code>, <code>jest</code> по своим файлам, пока всё не станет зелёным.</li>
+        <li>Открывает стенд и сравнивает скриншот с макетом.</li>
+        <li>В конце проводит ревью своей работы через <code>/code-review</code>.</li>
+      </ol>
+      <figure class="diagram">
+<pre class="mermaid">flowchart TB
+  base["baseline: линтер и тесты ДО правок"] --> code["правки<br/>независимые блоки — параллельными субагентами"]
+  code --> check["tsc · eslint · jest по своим файлам"]
+  check -- красное --> code
+  check -- зелёное --> browser["стенд в браузере:<br/>скриншот рядом с макетом"]
+  browser -- расходится --> code
+  browser -- совпадает --> done["готово к самопроверке"]</pre>
+        <figcaption>Агент правит код, пока проверки не зелёные и стенд не совпадает с макетом.</figcaption>
+      </figure>
+      <p>Что проверить нельзя (прод-сборка, CDN), агент помечает «не проверено». Если слышишь «должно работать», переспроси.</p>
+    </div>
+  </details>
+  <details class="acc">
+    <summary>Коммит</summary>
+    <div class="acc-body"><p>Скилл велит агенту закоммитить работу, но коммит делаешь ты: наше правило агента сильнее шага скилла. Перед коммитом посмотри <code>git status</code>: правило записано текстом, а не запретом в настройках, и агент может его нарушить.</p></div>
+  </details>
+  <details class="acc">
+    <summary>Баг на стенде</summary>
+    <div class="acc-body">
+      <p>Если на стенде нашёлся баг, запусти скилл диагностики. Агент воспроизведёт баг, найдёт причину и только потом начнёт чинить:</p>
+<pre data-label="диагностика бага"><code class="language-prompt">/mattpocock-skills:diagnosing-bugs &lt;что сломано&gt;</code></pre>
+      <p>Если нужен живой цикл в браузере с отладочными логами:</p>
+<pre data-label="локальная отладка"><code class="language-prompt">/segodnya-agents:local-debug @&lt;файл&gt; &lt;что сломано&gt;</code></pre>
+    </div>
+  </details>
+</section>
+
+<!-- ================= STEP 4 ================= -->
+<section id="step-4" class="step" data-step>
+  <span class="step-num" aria-hidden="true">4</span>
+  <header class="step-head">
+    <div><h2>Самопроверка</h2></div>
+    <span class="badge step-status"></span>
+  </header>
+  <div class="split">
+    <div class="split-you"><span class="split-label">Ты</span><p>коммит, Draft MR</p><div class="split-cmd"><code>/checklist-deploy</code> → <code>/mr-ready</code></div></div>
+    <div class="split-agent"><span class="split-label">Агент</span><p>свежий ревьюер ищет всё, что может найти машина, а другой агент это чинит, коммитит и пушит</p></div>
+  </div>
+
+  <p>Перед аудитом MR проходит самопроверку: свежий агент-ревьюер ищет всё, что может найти машина, а другой агент это чинит. Так аудитор получает MR, в котором машинные замечания уже закрыты.</p>
+  <ol>
+    <li>Закоммить, запушь и создай <strong>Draft MR</strong>. База MR – ветка, от которой ответвилась ветка задачи.</li>
+    <li>Собери чек-лист перед отгрузкой по диффу от базы MR:
+<pre data-label="чек-лист отгрузки"><code class="language-prompt">/checklist-deploy &lt;база MR&gt;</code></pre>
+    Команда заполнит описание, кейсы тестирования, изменения окружения и план отката. Особенности отгрузки, тип изменений и ссылку на MR (пп. 4, 6, 7) допиши сам. Опубликуй чек-лист комментарием в тикет: по нему ревьюер <code>mr-ready</code> сверит дифф, а тестировщик проверит задачу.</li>
+    <li>Открой новую сессию в репозитории кода и запусти самопроверку. Отправь два сообщения: сначала цель, потом скилл. Цель не даёт сессии остановиться посреди цикла.
+<pre data-label="промпт mr-ready"><code class="language-prompt">/goal mr-ready выдал финальный отчёт по MR. Чек-лист отгрузки: &lt;адрес Jira&gt;/browse/PROJ-103?focusedCommentId=&lt;id&gt;</code></pre>
+<div class="clawd-host">
+<pre data-label="запуск mr-ready"><code class="language-prompt">/segodnya-agents:mr-ready</code></pre>
+<svg class="clawd clawd-carry" width="96" height="72" viewBox="0 0 16 12" aria-hidden="true"><path d="M0 0h2v6H0zM14 0h2v6h-2zM2 2h12v8H2zM3 10h1v2H3zM5 10h1v2H5zM10 10h1v2h-1zM12 10h1v2h-1z"/><path class="eye" d="M4 3h1v2H4zM11 3h1v2h-1z"/></svg>
+</div></li>
+  </ol>
+  <p>Пока <code>mr-ready</code> работает, от тебя почти ничего не нужно. Скилл спросит тебя, только если упрётся в продуктовую развилку: два варианта UX или неясный контракт бэкенда.</p>
+
+  <div class="callout info"><div><p><strong>PROJ-103.</strong> Ревьюер нашёл, что пустое значение цвета ломает кнопку. Фиксер добавил цвет по умолчанию, запушил коммит и ответил в тред его хэшем. Во втором раунде находок не было, и отчёт пришёл со статусом <code>ready</code>.</p></div></div>
+
+  <div class="callout ok"><div><p><strong>Готово, когда:</strong> отчёт <code>mr-ready</code> – <code>ready</code>, CI зелёный. Если отчёт <code>stuck</code> или <code>cap</code>, прочитай в нём блок «Открыто для ревьюера» и реши сам.</p></div></div>
+
+  <details class="acc">
+    <summary>Что делает mr-ready</summary>
+    <div class="acc-body">
+      <p>Свежий ревьюер ищет проблемы в диффе и сверяет его с чек-листом. Каждую находку он оставляет тредом на нужной строке MR. Другой агент чинит её или отвечает, почему править не нужно, потом коммитит и пушит. Круг повторяется, пока находки не кончатся.</p>
+      <div class="callout err"><div><p><code>mr-ready</code> – единственный скилл, которому наши правила разрешают коммитить, пушить и писать в MR без отдельной просьбы. <code>--force</code>, <code>--amend</code>, <code>rebase</code> и закрытие тредов ему запрещены.</p></div></div>
+      <figure class="diagram">
+<pre class="mermaid">flowchart LR
+  r["Ревьюер<br/>review-staged"] --> e{"находки?"}
+  e -- нет --> h["описание MR<br/>+ отчёт"]
+  e -- да --> p["треды в MR<br/>«🤖 self-review»"] --> f["Фиксер<br/>audit-reply"]
+  f --> s["коммит · push<br/>ответ в тред"] --> r
+  f -. "продуктовая развилка" .-> q["вопрос разработчику"] --> r</pre>
+        <figcaption>Ревьюер ищет находки, фиксер их закрывает. Круг повторяется, пока находки не кончатся.</figcaption>
+      </figure>
+      <p>Ревьюер и фиксер – разные субагенты, и на каждом раунде они свежие. Правка уходит коммитом с ответом в тред, отказ – ответом с обоснованием. Треды закрывает аудитор, а не агент. Если ревьюер нашёл дефект не из диффа задачи, он попадёт в отчёт черновиком тикета.</p>
+      <p>Вопросы скилл задаёт в двух случаях: пакетом в начале, если чего-то не нашёл (чек-лист, команды проверок), и на продуктовой развилке.</p>
+    </div>
+  </details>
+  <details class="acc">
+    <summary>Когда останавливается и что делать, если прервался</summary>
+    <div class="acc-body">
+      <div class="table-wrap"><table>
+        <thead><tr><th>Статус</th><th>Когда</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-done">ready</span></td><td>находок нет</td></tr>
+          <tr><td><span class="badge badge-warning">stuck</span></td><td>находка пережила две правки, раунд повторил прошлый без новых коммитов или два раунда подряд остались только design notes</td></tr>
+          <tr><td><span class="badge badge-warning">cap</span></td><td>10-й раунд</td></tr>
+          <tr><td><span class="badge badge-danger">blocked</span></td><td>не удалось запушить</td></tr>
+        </tbody>
+      </table></div>
+      <p>Если результат не <code>ready</code>, причина будет в первой строке отчёта. Если сессия прервалась, просто запусти скилл снова. Каждый запуск начинается с нуля, но ничего не теряется: треды, ответы и коммиты уже лежат в GitLab и git.</p>
+<pre data-label="перезапуск mr-ready"><code class="language-prompt">/segodnya-agents:mr-ready &lt;ссылка на MR&gt;</code></pre>
+    </div>
+  </details>
+</section>
+
+<!-- ================= STEP 5 ================= -->
+<section id="step-5" class="step" data-step>
+  <span class="step-num" aria-hidden="true">5</span>
+  <header class="step-head">
+    <div><h2>Аудит</h2></div>
+    <span class="badge step-status"></span>
+  </header>
+  <div class="split">
+    <div class="split-you"><span class="split-label">Ты</span><p>снимаешь Draft</p></div>
+    <div class="split-agent"><span class="split-label">Агент</span><p>если есть замечания аудитора, <code>mr-ready</code> берёт открытые треды, правит или отвечает и пушит</p></div>
+  </div>
+
+  <p>Последний шаг – отдать MR человеку. Аудитор должен понять изменение без созвона.</p>
+  <p>Сними <strong>Draft</strong> и проверь, что в MR есть:</p>
+  <ol>
+    <li><strong>Заголовок</strong> – ключ и название тикета.</li>
+    <li><strong>Описание</strong> – ссылка на тикет с чек-листом и блок <code>Summary</code> / <code>Self-review</code> от <code>mr-ready</code>.</li>
+    <li><strong>Треды самопроверки</strong> на строках, и у каждого есть ответ: хэш коммита или причина отказа. Аудитор закрывает их прямо у кода, а следующий прогон <code>mr-ready</code> не поднимает отклонённое повторно.</li>
+  </ol>
+  <p>Если аудитор оставил замечания, разбирать их вручную не нужно. Снова запусти <code>mr-ready</code>: скилл возьмёт все открытые треды, свои и аудитора, поправит или ответит и запушит.</p>
+<pre data-label="ответ на замечания аудитора"><code class="language-prompt">/segodnya-agents:mr-ready &lt;ссылка на MR&gt;</code></pre>
+
+  <div class="callout info"><div><p><strong>PROJ-103.</strong> Аудитор спросил в треде, почему клиенту нельзя выбрать любой цвет. <code>mr-ready</code> ответил ссылкой на ADR-0001. Аудитор закрыл тред и смержил MR.</p></div></div>
+
+  <div class="callout ok"><div><p><strong>Задача сдана,</strong> когда MR смержен и все треды закрыты.</p></div></div>
+</section>
+
+<!-- ================= SLICING ================= -->
+<section id="slicing">
+  <div class="section-head"><h2>Нарезка готовой ветки на MR</h2></div>
+  <p>Иногда декомпозиция не удаётся, и вся фича вырастает в одной большой ветке. Это аварийный выход: в следующий раз режь задачу на <a href="#step-2">шаге 2</a>. Но если так уже случилось, ветку можно аккуратно разрезать на несколько MR.</p>
+  <details class="acc">
+    <summary>Как нарезать ветку на несколько MR</summary>
+    <div class="acc-body">
+      <p>Наша цель – превратить проверенную ветку в несколько небольших MR без конфликтов и без потери правок. Потом каждый MR проходит <a href="#step-4">шаг 4</a>.</p>
+
+      <h3>1. План нарезки</h3>
+      <p>Предложи агенту темы и попроси проверить зависимости:</p>
+<pre data-label="план нарезки"><code class="language-prompt">Дифф ветки большой. Предлагаю разделить на N MR: &lt;тема 1&gt; / &lt;тема 2&gt; / &lt;тема 3&gt;. Посмотри зависимости по импортам: стопкой или независимо от master? Будут ли конфликты?</code></pre>
+      <figure class="diagram">
+<pre class="mermaid">flowchart LR
+  subgraph ind["Независимые"]
+    m1[master] --> a1[MR A]
+    m1 --> b1[MR B]
+  end
+  subgraph stack["Стопка"]
+    m2[master] --> a2[MR A] --> b2[MR B] --> c2[MR C]
+  end</pre>
+        <figcaption>Независимые MR ответвляются от master. В стопке каждый MR целится в ветку предыдущего.</figcaption>
+      </figure>
+      <p>Агент выберет одну из двух форм. <strong>Независимые</strong> MR ответвляются каждый от master (или от базовой ветки фичи) и мержатся в любом порядке. Так можно, только если части не импортируют друг друга. В <strong>стопке</strong> каждый MR целится в ветку предыдущего. Она подходит для общего фундамента: рефакторинг без изменения поведения → данные → UI. Стопку мержат снизу вверх, <strong>без squash</strong>, и после мержа GitLab сам перенацеливает следующий MR.</p>
+      <div class="callout warn"><div><p>Внизу стопки не должно быть кода без потребителей, например схемы или хука, которые никто не вызывает. Аудитор не поймёт, зачем они, а линтер мёртвого кода упадёт. В таком случае лучше сделать MR побольше.</p></div></div>
+
+      <h3>2. Нарезка</h3>
+      <p>Теперь попроси агента разнести правки по веткам:</p>
+<pre data-label="нарезка по веткам"><code class="language-prompt">Заведи тикеты под новые MR дочерними к PROJ-100. Разнеси правки по веткам через субагентов, каждого — в отдельном worktree. Проверь каждую ветку (tsc, eslint, тесты, e2e), закоммить, запушь, создай MR. Потом сверь: верхняя ветка побайтово равна исходной.</code></pre>
+      <p>Ветки собираются из итогового состояния файлов, а не нарезкой истории коммитов, поэтому конфликтов нет. В конце обязательно проверь сверку: команда ниже должна вывести пустой дифф. Если он не пустой, какая-то правка потерялась или задвоилась.</p>
+<pre data-label="сверка веток"><code class="language-bash">git diff &lt;исходная ветка&gt; &lt;верх стопки&gt;</code></pre>
+      <p>Здесь агент коммитит и пушит сам: ты явно разрешаешь это на время нарезки.</p>
+
+      <h3>3. Чек-листы</h3>
+      <p>Осталось собрать чек-листы:</p>
+<pre data-label="чек-листы для MR"><code class="language-prompt">Для каждого тикета — /checklist-deploy по диффу его MR, опубликуй в тикет в jira wiki-разметке. Общий чек-лист для тестировщика по всей фиче — в PROJ-100.</code></pre>
+      <p>В чек-листе тикета – только кейсы его диффа и порядок мержа в «Особенностях отгрузки». Общий чек-лист описывает сквозные сценарии: по нему тестировщик проверяет фичу целиком, когда смержены все MR.</p>
+      <p>Дальше запусти <code>/segodnya-agents:mr-ready</code> по каждому MR, снизу стопки вверх.</p>
+      <div class="callout ok"><div><p><strong>Готово, когда:</strong> все MR зелёные в CI и без конфликтов, сверка пустая, чек-листы опубликованы.</p></div></div>
+    </div>
+  </details>
+</section>
+
+<!-- ================= CONTEXT ================= -->
+<section id="context">
+  <div class="section-head"><h2>Как беречь контекст</h2></div>
+  <p><a class="term" href="#g-context" data-tip="Всё, что агент видит в сессии: инструкции, диалог, прочитанные файлы. Ограничен.">Контекст</a> агента ограничен. В длинной сессии модель хуже использует то, что было давно (<a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/context-engineering.md">context rot</a>). Окно в 1M токенов откладывает сжатие, но эту проблему не снимает. Поэтому мы храним всё там, откуда агент возьмёт это сам, когда понадобится. В этом помогают пять привычек:</p>
+  <div class="cards">
+    <div class="card"><h3>Разведку отдавай субагентам</h3><p>Они читают много файлов, а в основную сессию возвращают только вывод.</p></div>
+    <div class="card"><h3><code>/clear</code>, а не <code>/compact</code></h3><p>…когда всё решённое уже в файлах. Сводка от <code>/compact</code> теряет детали, а чистая сессия с хорошим промптом почти всегда работает лучше длинной. <code>/compact</code> нужен, только если остались незаписанные решения.</p></div>
+    <div class="card"><h3>Уходишь – оставь <a class="term" href="#g-handoff" data-tip="Записка для следующей сессии: где остановились и что делать дальше.">handoff</a></h3><p><code>/mattpocock-skills:handoff</code>: цель, решения и причины, что пробовали и отбросили, следующий шаг. Записка ложится во временную папку и ссылается на <code>task.md</code> и тикеты, а не копирует их.</p></div>
+    <div class="card"><h3>Не раздувай <code>CLAUDE.md</code></h3><p>Правило, которое агент соблюдает и без него, лишнее (<a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/bloated-claude-md.md">«Раздутая память»</a>). <code>CLAUDE.md</code> направляет агента, но не гарантирует соблюдения. Критичный запрет задаётся через <code>permissions.deny</code> или хук (<a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/executable-guardrails.md">«Исполняемые ограничения»</a>).</p></div>
+    <div class="card"><h3>Дай агенту способ проверить себя</h3><p>Тест, линтер, скриншот рядом с макетом. Доказательство приходит из окружения, а не из рассказа агента (<a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/give-agent-a-way-to-verify.md">«Петля обратной связи»</a>). Иначе агент объявит <a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/premature-success.md">преждевременный успех</a>.</p></div>
+  </div>
+  <details class="acc">
+    <summary>Где что хранится</summary>
+    <div class="acc-body">
+      <div class="table-wrap"><table>
+        <thead><tr><th>Что</th><th>Где</th><th>Как попадает к агенту</th></tr></thead>
+        <tbody>
+          <tr><td>Правила</td><td><code>CLAUDE.md</code>, <code>.claude/rules/</code> репозитория</td><td>автоматически при старте</td></tr>
+          <tr><td>Язык домена и решения</td><td><code>CONTEXT.md</code>, ADR</td><td>ссылкой из <code>task.md</code></td></tr>
+          <tr><td>Код и данные задачи</td><td>репозиторий</td><td>агент читает сам: давай пути, не вставляй код в чат</td></tr>
+          <tr><td>Спека и тикеты</td><td>Jira</td><td>ключом тикета в первом сообщении сессии</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </details>
+  <p>Если хочешь глубже, почитай книгу Кирилла Мокевнина <a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/SUMMARY.md">Agentic Coding Design Patterns</a>, разделы «Работа с контекстом» и «Проверка», и <a href="https://code.claude.com/docs/en/best-practices">Best practices</a> Claude Code.</p>
+</section>
+
+<!-- ================= NEW REPO ================= -->
+<section id="new-repo">
+  <div class="section-head"><h2>Настройка нового репозитория</h2></div>
+  <p>Эту настройку делают один раз на репозиторий, а не на каждого разработчика. Она нужна, если в репозитории нет файла <code>docs/agents/issue-tracker.md</code>.</p>
+  <details class="acc">
+    <summary>Зачем, кто делает, 7 шагов и текст про Jira</summary>
+    <div class="acc-body">
+      <p>Скиллам Мэтта (<code>to-spec</code>, <code>to-tickets</code>, <code>wayfinder</code>) нужно знать, где живут задачи и где лежат глоссарий и ADR. Эти настройки хранятся в самом репозитории, поэтому их делает и коммитит один человек для всей команды.</p>
+      <div class="callout warn"><div><p>Сделать это может любой разработчик. Только сначала договорись с владельцами репозитория: правка затронет общий <code>CLAUDE.md</code>.</p></div></div>
+      <ol>
+        <li>Пройди <a href="#step-0">шаг 0</a> в этом репозитории.</li>
+        <li>Запусти в Claude <code>/mattpocock-skills:setup-matt-pocock-skills</code>. Скилл изучит репозиторий и задаст 1–3 вопроса.</li>
+        <li>На вопрос про трекер выбери «Other» и вставь текст ниже.</li>
+        <li>Если скилл спросит про метки триажа, откажись: в Jira мы их не используем.</li>
+        <li>По умолчанию скилл ищет глоссарий и ADR в корне репозитория, а у нас они свои у каждой фичи. Поэтому, когда скилл запишет <code>docs/agents/domain.md</code>, попроси заменить его содержимое нашим правилом (текст ниже).</li>
+        <li>Проверь дифф: должны поменяться только блок <code>## Agent skills</code> в <code>CLAUDE.md</code> и файлы <code>docs/agents/*.md</code>.</li>
+        <li>Отправь правку обычным MR.</li>
+      </ol>
+      <h4>Текст про трекер (шаг 3)</h4>
+<pre data-label="текст про Jira"><code class="language-prompt">Задачи живут в Jira (&lt;адрес Jira&gt;), работаем через jira-cli.
+Читать: jira issue view &lt;KEY&gt; --plain. Создавать: jira issue create -p &lt;PROJECT&gt; --parent &lt;KEY&gt;,
+тело из файла: --template &lt;file&gt; --no-input &lt; /dev/null. Поля: Гильдия — Frontend, исполнитель — я.
+Блокировки — связь «Блокирует» (jira issue link). Спеку публикуй комментарием в родительский тикет.
+Метки триажа не ставим.</code></pre>
+      <h4>Правило для domain.md (шаг 5)</h4>
+<pre data-label="правило для domain.md"><code class="language-prompt">У каждой фичи свой глоссарий (CONTEXT.md или GLOSSARY.md) и свои ADR, они лежат в папке фичи в specs рядом с task.md. Читай те, что относятся к текущей задаче.</code></pre>
+      <div class="callout ok"><div><p><strong>Готово, когда:</strong> MR смержен, и <code>/mattpocock-skills:to-tickets</code> в этом репозитории предлагает завести тикеты в Jira.</p></div></div>
+      <p>Если настройку ещё не сделали, работа не встанет. Попроси <code>to-tickets</code> сохранить тикеты markdown-файлами в репозитории, а потом заведи их в Jira сам или попроси об этом агента.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ================= COMPARE ================= -->
+<section id="compare">
+  <div class="section-head"><h2>Почему скиллы Мэтта</h2></div>
+  <p>Готовых флоу для агентов много. Мы сравнили пять вариантов и выбрали тот, где меньше всего церемоний на типичную фронтовую задачу.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Флоу</th><th>Как устроен</th><th>Что остаётся после задачи</th><th>Цена для нас</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://github.com/mattpocock/skills">Скиллы Мэтта Покока</a></td><td>один короткий скилл на шаг: grill → спека → тикеты → код → ревью</td><td>тикеты в трекере, глоссарий, редкие ADR</td><td>свои скиллы нужны для самопроверки MR и Jira</td></tr>
+      <tr><td><a href="https://github.com/obra/superpowers">Superpowers</a></td><td>строгий конвейер: брейншторм → дизайн-док → план из задач по 2–5 минут → субагенты, обязательный TDD</td><td>дизайн-док и план на каждую фичу</td><td>много церемоний для правки на сотню строк; код, написанный до теста, скилл удаляет</td></tr>
+      <tr><td><a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a></td><td>на каждое изменение: предложение → задачи → реализация → архив</td><td><code>proposal.md</code>, <code>design.md</code>, <code>tasks.md</code> и дельты спек</td><td>второй источник правды рядом с <code>arc/specs</code> и Jira</td></tr>
+      <tr><td><a href="https://github.com/github/spec-kit">Spec Kit</a></td><td>spec-driven development: конституция проекта → спека → план → задачи → реализация</td><td>больше всего документов на фичу</td><td>документы надо писать, читать и держать в актуальном виде</td></tr>
+      <tr><td>Свой набор скиллов</td><td>всё под нас</td><td>что решим сами</td><td>ошибки ищем и чиним только мы, новичку нечего почитать снаружи</td></tr>
+    </tbody>
+  </table></div>
+  <p>Мы выбрали скиллы Мэтта по трём причинам:</p>
+  <ol>
+    <li>Один шаг – один скилл, а скилл читается за минуту. Например, <code>implement</code> занимает несколько строк. Когда агент делает что-то странное, причину легко найти.</li>
+    <li>В скиллы заложены разговор до кода, вертикальные срезы и ревьюер в отдельной сессии. Те же приёмы описывают <a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/SUMMARY.md">книга Мокевнина</a> и <a href="https://code.claude.com/docs/en/best-practices">best practices Anthropic</a>.</li>
+    <li>Проект живой: около 290 тыс. звёзд и 24 тыс. форков на GitHub, релизы раз в несколько недель. Обновление приходит через плагин, повторный запуск <code>setup.sh</code> ничего не ломает.</li>
+  </ol>
+  <div class="callout info"><div><p>Скиллы Мэтта пишет в основном один автор: у репозитория 8 контрибьюторов. Поэтому скиллы согласованы друг с другом. Если важно большое сообщество разработчиков, у Spec Kit их 318, у OpenSpec 145, у Superpowers 44. Зато там и документов на задачу больше. Данные GitHub на 15 октября 2026.</p></div></div>
+</section>
+
+<!-- ================= TOOLS ================= -->
+<section id="tools">
+  <div class="section-head"><h2>Инструменты</h2></div>
+  <p>Все эти инструменты ставит <a href="setup.sh"><code>setup.sh</code></a>, а вызывает агент.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Инструмент</th><th>Зачем</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://github.com/ankitpokhrel/jira-cli">jira-cli</a></td><td>агент читает постановку и заводит тикеты</td></tr>
+      <tr><td><a href="https://gitlab.com/gitlab-org/cli">glab</a></td><td>агент читает MR и треды; <code>mr-ready</code> публикует треды самопроверки и ответы</td></tr>
+      <tr><td><a href="https://github.com/ChromeDevTools/chrome-devtools-mcp">chrome-devtools MCP</a></td><td>агент открывает стенд, делает скриншоты, измеряет вёрстку</td></tr>
+      <tr><td><a href="https://github.com/mksglu/context-mode">context-mode</a></td><td>большие выводы (логи, страницы) не забивают контекст: агент получает только нужный фрагмент</td></tr>
+      <tr><td><code>typescript-lsp</code></td><td>точный поиск использований символа перед переименованием</td></tr>
+      <tr><td><a href="https://github.com/mattpocock/skills">mattpocock-skills</a></td><td>основной флоу: grill-with-docs, wayfinder, to-spec, to-tickets, implement, code-review, diagnosing-bugs, handoff</td></tr>
+      <tr><td><a href="https://github.com/Segodnya/agents">segodnya-agents</a></td><td>самопроверка и ответы на аудит: mr-ready, review-staged, audit-reply, local-debug, merge-resolve</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= GLOSSARY ================= -->
+<section id="glossary">
+  <div class="section-head"><h2>Глоссарий</h2></div>
+  <p>Если в тексте встретилось незнакомое слово (агент, сессия, grill, спека, тред), загляни сюда. Термины с пунктирным подчёркиванием в тексте показывают подсказку при наведении.</p>
+  <dl class="glossary">
+    <dt id="g-agent">Агент</dt><dd>Claude Code: читает и изменяет код, запускает команды.</dd>
+    <dt id="g-session">Сессия</dt><dd>Один разговор с агентом. Новая сессия ничего не помнит о предыдущей, кроме файлов.</dd>
+    <dt id="g-context">Контекст (окно)</dt><dd>Всё, что агент видит в сессии: инструкции, диалог, прочитанные файлы. Ограничен. См. <a href="#context">Как беречь контекст</a>.</dd>
+    <dt id="g-subagent">Субагент</dt><dd>Агент, которого основная сессия запускает на подзадачу. У него свой контекст, назад он возвращает только вывод.</dd>
+    <dt id="g-skill">Скилл</dt><dd>Упакованная инструкция под конкретную задачу. Вызывается командой <code>/имя</code>.</dd>
+    <dt id="g-mcp">MCP</dt><dd>Способ подключить к агенту внешний инструмент, например браузер.</dd>
+    <dt id="g-claude-md">CLAUDE.md</dt><dd>Файл правил, который агент читает в начале каждой сессии: личный <code>~/.claude/CLAUDE.md</code> и командный в репозитории.</dd>
+    <dt id="g-one-shot">One shot</dt><dd>Агент делает задачу сразу, без предварительного разговора. Подходит для крошечного диффа.</dd>
+    <dt id="g-grill">Grill</dt><dd>Режим, в котором агент задаёт вопросы, пока не поймёт задачу полностью.</dd>
+    <dt id="g-wayfinder">Wayfinder</dt><dd>Карта решений для задачи, которая не помещается в одну сессию. Каждый вопрос – отдельный тикет, их решают по одному.</dd>
+    <dt id="g-spec">Спека</dt><dd>Итог grill одним документом: проблема, решение, user stories, решения, тесты.</dd>
+    <dt id="g-slice">Вертикальный срез</dt><dd>Тикет, который проходит через все слои (данные, API, UI, тесты) и проверяется сам по себе. Противоположность – тикет «только API» или «только вёрстка».</dd>
+    <dt id="g-adr">ADR</dt><dd>Короткая запись архитектурного решения: контекст, решение, причины, последствия.</dd>
+    <dt id="g-diff">Дифф / staged</dt><dd>Изменения в коде / изменения, добавленные в индекс git (<code>git add</code>).</dd>
+    <dt id="g-mr">MR</dt><dd>Merge request в GitLab. <strong>Тред</strong> – обсуждение на строке MR.</dd>
+    <dt id="g-auditor">Аудитор</dt><dd>Разработчик, который проводит аудит MR перед мержем.</dd>
+    <dt id="g-baseline">Baseline</dt><dd>Состояние проверок до правок. Помогает отличить свои ошибки от старых.</dd>
+    <dt id="g-handoff">Handoff</dt><dd>Записка для следующей сессии: где остановились и что делать дальше.</dd>
+  </dl>
+</section>
+
+</main>
+
+<dialog class="keys" id="keys" aria-labelledby="keys-title">
+  <h2 id="keys-title">Горячие клавиши</h2>
+  <dl>
+    <dt><kbd>J</kbd> <kbd>K</kbd></dt><dd>следующий / предыдущий раздел</dd>
+    <dt><kbd>C</kbd></dt><dd>скопировать ближайший промпт</dd>
+    <dt><kbd>X</kbd></dt><dd>отметить шаг на экране пройденным или снять отметку</dd>
+    <dt><kbd>?</kbd></dt><dd>эта подсказка</dd>
+  </dl>
+  <form method="dialog"><button class="btn btn-secondary">Закрыть</button></form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="toast-icon" aria-hidden="true"></span>
+  <div class="toast-body"><div class="toast-title"></div><div class="toast-desc"></div></div>
+  <button class="toast-close" type="button" aria-label="Закрыть уведомление"></button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.12.0/highlight.min.js" defer></script>
+<script>
+// An inline script cannot defer: wait for DOMContentLoaded, by then highlight.js is loaded
+addEventListener('DOMContentLoaded', () => {
+  const MERMAID = 'https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs';
+  const CONFETTI = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.module.mjs';
+  const KEY = 'frontend-task-flow:done';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+  const sections = $$('main > section[id]');
+  const steps = $$('section[data-step]');
+  const title = s => $('h2', s).textContent;
+  const ICON = { done: '✓', current: '→', todo: '○' };
+  const LABEL = { done: 'Пройден', current: 'Текущий', todo: 'Не начат' };
+
+  let done;
+  try { done = new Set(JSON.parse(localStorage.getItem(KEY)) || []); } catch { done = new Set(); }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify([...done])); } catch {} };
+  const firstOpen = () => steps.find(s => !done.has(s.id));
+
+  // External links and local files (setup.sh, claude-rules.md) open in a new tab
+  $$('a[href]').forEach(a => {
+    if (!a.getAttribute('href').startsWith('#')) { a.target = '_blank'; a.rel = 'noopener'; }
+  });
+
+  // Hero stepper: each pipeline stage is labeled with the last command of its step
+  const job = s => { const c = $$('.split-cmd code', s).at(-1); return c ? `<span class="node-job">${c.textContent}</span>` : ''; };
+  $('#stepper').innerHTML = steps.map((s, i) =>
+    `<li data-for="${s.id}"><a href="#${s.id}"><span class="stepper-dot">${i}</span><span class="node-label">${title(s)}</span>${job(s)}</a></li>`
+  ).join('');
+
+  // Navigation at the bottom of a step
+  steps.forEach(s => {
+    const i = sections.indexOf(s), prev = sections[i - 1], next = sections[i + 1];
+    const link = (sec, text, label, kind) => sec
+      ? `<a class="btn btn-${kind}" href="#${sec.id}" aria-label="${label}: ${title(sec)}">${text}</a>` : '<span></span>';
+    s.insertAdjacentHTML('beforeend', `<footer class="step-nav">
+      ${link(prev, '← Назад', 'Назад', 'secondary')}
+      <label class="checkbox"><input type="checkbox" class="done-toggle"><span>Шаг пройден</span></label>
+      ${link(next, 'Далее →', 'Далее', 'primary')}
+    </footer>`);
+    $('.done-toggle', s).addEventListener('change', () => toggle(s));
+  });
+
+  function render() {
+    const cur = firstOpen(), n = done.size, total = steps.length, pct = Math.round(n / total * 100);
+    steps.forEach(s => {
+      const st = done.has(s.id) ? 'done' : s === cur ? 'current' : 'todo';
+      s.dataset.status = st;
+      const badge = $('.step-status', s);
+      badge.className = `badge step-status badge-${st}`;
+      badge.textContent = `${ICON[st]} ${LABEL[st]}`;
+      $('.done-toggle', s).checked = st === 'done';
+      $$(`[data-for="${s.id}"]`).forEach(el => {
+        el.dataset.status = st;
+        const ic = $('.st', el);
+        if (!ic) return;
+        ic.className = `st st-${st}`;
+        ic.setAttribute('aria-label', LABEL[st]);
+      });
+    });
+    document.documentElement.style.setProperty('--progress', n / total * 100);
+    $$('[data-count]').forEach(e => e.textContent = `${n} из ${total}`);
+    $$('[data-pct]').forEach(e => e.textContent = `${pct}%`);
+    $('#bar').setAttribute('aria-valuenow', n);
+    const go = $('#continue');
+    go.href = '#' + (cur || steps.at(-1)).id;
+    go.textContent = n === 0 ? 'Начать' : cur ? `Продолжить: ${title(cur)}` : 'Задача сдана 🎉';
+    $('.progress-card').classList.toggle('complete', !cur);
+  }
+
+  function toggle(s) {
+    if (done.delete(s.id)) { save(); render(); return; }
+    done.add(s.id); save(); render();
+    [$('.step-num', s), $(`#stepper [data-for="${s.id}"] .stepper-dot`)].forEach(burst);
+    const cur = firstOpen();
+    if (cur) {
+      toast(`«${title(s)}» пройден`, `Дальше: ${title(cur)}`);
+      const r = $('.done-toggle', s).getBoundingClientRect();
+      const seen = r.top > 0 && r.bottom < innerHeight;
+      confetti({ particleCount: 40, spread: 60, startVelocity: 25, scalar: .8,
+        origin: seen ? { x: (r.left + r.width / 2) / innerWidth, y: r.top / innerHeight } : { y: .8 } });
+    } else {
+      toast('Задача сдана!', 'Все шаги пройдены');
+      confetti({ particleCount: 160, spread: 90, origin: { y: .7 } });
+    }
+  }
+
+  function confetti(opts) {
+    import(CONFETTI)
+      .then(m => m.default({ disableForReducedMotion: true, ...opts }))
+      .catch(() => {});
+  }
+
+  // WAAPI replays the animation without removing the class or forcing a reflow
+  const calm = matchMedia('(prefers-reduced-motion: reduce)');
+  function burst(el) {
+    if (!el || calm.matches) return;
+    el.animate([
+      { transform: 'scale(1)', boxShadow: '0 0 0 0 color-mix(in srgb, var(--done) 50%, transparent)' },
+      { transform: 'scale(1.18)', offset: .3 },
+      { transform: 'scale(1)', boxShadow: '0 0 0 18px transparent' },
+    ], { duration: 700, easing: 'ease-out' });
+  }
+
+  // Hero demo: lines are already in the markup, the script assigns delays and restarts the animation
+  const demo = $('#demo');
+  const tabs = $$('[role="tab"]', demo);
+  let demoTimer;
+  // Typing effect: each character is a span with its index, CSS computes the delay, text space is reserved upfront
+  const CPS = .02;
+  demo.style.setProperty('--cps', `${CPS}s`);
+  $$('.tl-cmd, .tl-you', demo).forEach(l => {
+    let c = 0;
+    const split = node => [...node.childNodes].forEach(n => {
+      if (n.nodeType !== Node.TEXT_NODE) return split(n);
+      n.replaceWith(...[...n.data].map(ch => {
+        const s = document.createElement('span');
+        s.className = 'ch';
+        s.style.setProperty('--c', c++);
+        s.textContent = ch;
+        return s;
+      }));
+    });
+    split(l);
+    l.dataset.chars = c;
+  });
+  function playDemo(auto) {
+    let t = .6;
+    $$('.demo-body:not([hidden]) .tl', demo).forEach(l => {
+      l.style.setProperty('--d', `${t}s`);
+      const n = +l.dataset.chars || 0;
+      t += n ? n * CPS + .4 : l.matches('.tl-run') ? 1.2 : .45;
+    });
+    demo.classList.remove('play');
+    void demo.offsetWidth;
+    demo.classList.add('play');
+    clearTimeout(demoTimer);
+    // Auto-advances to the next session until the user picks a tab manually
+    const next = tabs[tabs.findIndex(b => b.getAttribute('aria-selected') === 'true') + 1];
+    if (auto && next && !calm.matches) demoTimer = setTimeout(() => showTab(next, true), (t + 3) * 1000);
+  }
+  function showTab(tab, auto) {
+    tabs.forEach(b => {
+      const on = b === tab;
+      b.setAttribute('aria-selected', on);
+      b.tabIndex = on ? 0 : -1;
+      $('#' + b.getAttribute('aria-controls')).hidden = !on;
+    });
+    playDemo(auto);
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => showTab(b));
+    b.addEventListener('keydown', e => {
+      const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!d) return;
+      const n = tabs[(i + d + tabs.length) % tabs.length];
+      n.focus();
+      showTab(n);
+    });
+  });
+  playDemo(true);
+  $('.demo-replay', demo).addEventListener('click', () => playDemo());
+
+  let toastTimer;
+  function toast(title, desc, isError = false) {
+    const el = $('#toast');
+    $('.toast-title', el).textContent = title;
+    $('.toast-desc', el).textContent = desc;
+    el.classList.toggle('err', isError);
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+  $('.toast-close').addEventListener('click', () => $('#toast').classList.remove('show'));
+
+  $('#reset').addEventListener('click', () => {
+    if (!confirm('Сбросить отметки о пройденных шагах?')) return;
+    done.clear(); save(); render();
+  });
+
+  // Copy to clipboard
+  $$('pre > code').forEach(code => {
+    const pre = code.parentElement;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'copy';
+    b.textContent = 'Копировать';
+    b.setAttribute('aria-label', `Копировать: ${pre.dataset.label || 'блок кода'}`);
+    b.addEventListener('click', async () => {
+      const text = code.textContent.trim();
+      let ok = true;
+      try { await navigator.clipboard.writeText(text); } catch { ok = copyFallback(text); }
+      b.textContent = ok ? 'Скопировано ✓' : 'Не удалось';
+      b.classList.toggle('copied', ok);
+      if (ok) toast('Скопировано', pre.dataset.label || 'Блок кода');
+      else toast('Не удалось скопировать', 'Браузер не дал доступ к буферу обмена', true);
+      clearTimeout(b._t);
+      b._t = setTimeout(() => { b.textContent = 'Копировать'; b.classList.remove('copied'); }, 1600);
+    });
+    pre.append(b);
+  });
+
+  // Clipboard API fails without document focus and in some browsers on file://
+  function copyFallback(text) {
+    const ta = Object.assign(document.createElement('textarea'), { value: text });
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.append(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch {}
+    ta.remove();
+    return ok;
+  }
+
+  // Highlighting: bash out of the box, a custom language for prompts
+  if (window.hljs) {
+    hljs.configure({ ignoreUnescapedHTML: true });
+    hljs.registerLanguage('prompt', () => ({
+      contains: [
+        { scope: 'link', begin: /https?:\/\/\S+/ },
+        { scope: 'keyword', begin: /(?<=^|\s)\/[a-z][\w-]*(?::[\w-]+)?/ },
+        { scope: 'string', begin: /@[^\s]+/ },
+        { scope: 'variable', begin: /<[^<>\n]+>/ },
+        { scope: 'title', begin: /\b[A-Z]+-\d+\b/ },
+        { scope: 'comment', begin: /#\s.*$/ },
+      ],
+    }));
+    $$('pre code[class*="language-"]').forEach(c => hljs.highlightElement(c));
+  }
+
+  // Mermaid loads lazily and only for visible diagrams: inside a closed <details> sizes are computed wrong
+  let mermaidReady, mermaidTheme;
+  function drawDiagrams(root) {
+    const nodes = $$('pre.mermaid:not([data-processed])', root).filter(n => !n.closest('details:not([open])'));
+    if (!nodes.length) return;
+    // Keep the diagram source for re-rendering on theme change: mermaid replaces it with SVG
+    nodes.forEach(n => n.dataset.src ??= n.textContent);
+    mermaidReady ??= import(MERMAID).then(m => m.default);
+    mermaidReady.then(m => {
+      const theme = document.documentElement.dataset.theme;
+      if (theme !== mermaidTheme) {
+        mermaidTheme = theme;
+        const v = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        m.initialize({
+          startOnLoad: false,
+          theme: 'base',
+          fontFamily: '"Golos Text", system-ui, sans-serif',
+          themeVariables: {
+            darkMode: theme === 'dark',
+            fontSize: '14px', primaryColor: v('--signal-soft'), primaryBorderColor: v('--signal'), primaryTextColor: v('--ink'),
+            lineColor: v('--ink-3'), secondaryColor: v('--panel'), tertiaryColor: v('--bg'), clusterBkg: v('--panel'), clusterBorder: v('--rule'),
+            actorBkg: v('--signal-soft'), actorBorder: v('--signal'), noteBkgColor: v('--warn-soft'), noteBorderColor: v('--warn'),
+            textColor: v('--ink'), edgeLabelBackground: v('--bg'),
+          },
+        });
+      }
+      return m.run({ nodes });
+    }).catch(() => {});
+  }
+  drawDiagrams(document);
+
+  // Theme: an explicit choice is stored in localStorage, otherwise the page follows the system
+  const THEME_KEY = 'frontend-task-flow:theme';
+  const themeBtn = $('#theme'), systemDark = matchMedia('(prefers-color-scheme: dark)');
+  function setTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    themeBtn.setAttribute('aria-pressed', theme === 'dark');
+    $$('pre.mermaid[data-processed]').forEach(n => { n.textContent = n.dataset.src; n.removeAttribute('data-processed'); });
+    drawDiagrams(document);
+  }
+  themeBtn.setAttribute('aria-pressed', document.documentElement.dataset.theme === 'dark');
+  themeBtn.addEventListener('click', () => {
+    const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_KEY, theme); } catch {}
+    setTheme(theme);
+  });
+  systemDark.addEventListener('change', e => {
+    let saved;
+    try { saved = localStorage.getItem(THEME_KEY); } catch {}
+    if (!saved) setTheme(e.matches ? 'dark' : 'light');
+  });
+  $$('details').forEach(d => d.addEventListener('toggle', () => d.open && drawDiagrams(d)));
+
+  // Highlight the active table-of-contents item
+  $$('.toc-group').forEach(g => g.addEventListener('click', () =>
+    g.setAttribute('aria-expanded', g.getAttribute('aria-expanded') !== 'true')));
+
+  const tocLinks = new Map($$('#toc a').map(a => [a.hash.slice(1), a]));
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      tocLinks.forEach(a => a.removeAttribute('aria-current'));
+      tocLinks.get(e.target.id)?.setAttribute('aria-current', 'location');
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(s => spy.observe(s));
+
+  // Mobile table of contents
+  const sb = $('#sidebar'), burger = $('#burger'), backdrop = $('#backdrop');
+  const setDrawer = open => {
+    sb.classList.toggle('open', open);
+    backdrop.hidden = !open;
+    burger.setAttribute('aria-expanded', open);
+    burger.setAttribute('aria-label', open ? 'Закрыть оглавление' : 'Открыть оглавление');
+    if (open) $('#toc a').focus();
+  };
+  burger.addEventListener('click', () => setDrawer(!sb.classList.contains('open')));
+  backdrop.addEventListener('click', () => setDrawer(false));
+  sb.addEventListener('click', e => { if (e.target.closest('a')) setDrawer(false); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && sb.classList.contains('open')) { setDrawer(false); burger.focus(); }
+  });
+
+  // Hotkeys: e.code, not e.key: in the Russian layout J arrives as "о"
+  const keys = $('#keys');
+  $('#keys-open').addEventListener('click', () => keys.showModal());
+  const atCenter = list => list.find(el => { const r = el.getBoundingClientRect(); return r.top <= innerHeight / 2 && r.bottom >= innerHeight / 2; });
+  const SHORTCUTS = {
+    KeyJ: () => sections.find(s => s.getBoundingClientRect().top > 30)?.scrollIntoView(),
+    KeyK: () => sections.findLast(s => s.getBoundingClientRect().top < -5)?.scrollIntoView(),
+    KeyX: () => { const s = atCenter(steps); if (s) $('.done-toggle', s).click(); },
+    // Visible block closest to the viewport center; blocks inside a closed <details> have no size and are skipped
+    KeyC: () => {
+      const mid = innerHeight / 2;
+      const dist = el => { const r = el.getBoundingClientRect(); return Math.abs((r.top + r.bottom) / 2 - mid); };
+      const seen = $$('pre > .copy').filter(b => { const r = b.parentElement.getBoundingClientRect(); return r.height && r.bottom > 0 && r.top < innerHeight; });
+      seen.sort((a, b) => dist(a.parentElement) - dist(b.parentElement))[0]?.click();
+    },
+  };
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented || keys.open) return;
+    if (e.target.closest('input:not([type="checkbox"]), textarea, select, [contenteditable]')) return;
+    if (e.key === '?' || (e.code === 'Slash' && e.shiftKey)) { e.preventDefault(); keys.showModal(); return; }
+    if (e.shiftKey || !SHORTCUTS[e.code]) return;
+    e.preventDefault();
+    SHORTCUTS[e.code]();
+  });
+
+  render();
+});
+</script>
+</body>
+</html>
