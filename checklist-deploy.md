@@ -4,6 +4,8 @@ Build the checklist from a diff. The diff source is passed in `$ARGUMENTS`.
 
 Leave items 4, 6, 7 as `-`: the author fills them in. Fill items 1, 2, 3, 5 using the heuristics below.
 
+Write the checklist in the language the user is talking to you in. Russian dialogue means the Russian template and Russian item text; anything else means the English template. Don't mix languages inside one checklist.
+
 ## Step 1: determine the diff source
 
 If `$ARGUMENTS` is empty, ask the user via `AskUserQuestion`:
@@ -90,7 +92,9 @@ If you found several signs, list them one by one and name the specific files and
 
 ## Step 4: output the checklist
 
-Copy the template below with the filled items. Leave items 4, 6, 7 as `-`.
+Copy the template that matches the dialogue language with the filled items. Leave items 4, 6, 7 as `-`.
+
+English:
 
 ```text
 1. Problem description, what was fixed: <filled>
@@ -105,3 +109,21 @@ Copy the template below with the filled items. Leave items 4, 6, 7 as `-`.
 6. Change type: -
 7. Merge request: -
 ```
+
+Russian:
+
+```text
+1. Описание проблемы, что исправляли: <заполнено>
+2. Кейсы тестирования, ожидаемый результат и затронутый функционал:
+2.1. Позитивные кейсы: <заполнено>
+2.2. Негативные кейсы: <заполнено>
+2.3. Деструктивные кейсы: <заполнено>
+2.4. Тестирование базового функционала: <заполнено>
+3. Необходимые изменения боевого окружения (БД, воркеры, nginx и т.п.): <заполнено>
+4. Особенности отгрузки: -
+5. План отката: <заполнено>
+6. Тип изменений: -
+7. Merge request: -
+```
+
+The fixed phrases from Step 3 have Russian counterparts: "Technical refactor/cleanup, does not change user behaviour" is «Технический рефактор/чистка, пользовательского поведения не меняет», and "No special handling, the changes are backward compatible." is «Нет особенностей, изменения обратно совместимы.»
