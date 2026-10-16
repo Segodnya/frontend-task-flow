@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-    paths: [index.html]
+    paths: [index.html, assets/**, robots.txt, sitemap.xml]
   workflow_dispatch:
 
 permissions:
@@ -23,7 +23,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir site && cp index.html site/
+      - run: mkdir site && cp -r index.html robots.txt sitemap.xml assets site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

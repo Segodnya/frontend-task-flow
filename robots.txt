@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://segodnya.github.io/frontend-task-flow/sitemap.xml
