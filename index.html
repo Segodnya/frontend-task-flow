@@ -689,7 +689,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
 
   <ol>
     <li>Склонируй репозиторий флоу:
-<pre data-label="клонировать флоу"><code class="language-bash">git clone &lt;адрес репозитория флоу&gt; ~/frontend-task-flow</code></pre></li>
+<pre data-label="клонировать флоу"><code class="language-bash">git clone https://github.com/Segodnya/frontend-task-flow.git ~/frontend-task-flow</code></pre></li>
     <li>Перейди в репозиторий, в котором будешь работать:
 <pre data-label="перейти в рабочий репозиторий"><code class="language-bash">cd ~/work/&lt;репозиторий&gt;</code></pre></li>
     <li>Запусти скрипт настройки, передав адрес своей Jira и хост своего GitLab. Без этих аргументов скрипт остановится с ошибкой:
@@ -702,7 +702,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
   <p>После этого агент сможет сам ходить в Jira и GitLab из терминала, открывать стенд в браузере и сравнивать его с макетом. В репозитории появятся скиллы Мэтта Покока и наши скиллы самопроверки. Коммитить ничего не нужно: плагины и настройки записываются в <code>.claude/settings.local.json</code>, а все файлы скрипта скрыты от git и в <code>git status</code> не появятся.</p>
   <p>Запускать скрипт повторно безопасно: твои настройки он не перезаписывает. Поэтому обновить флоу просто: сделай <code>git pull</code> в <code>~/frontend-task-flow</code> и запусти скрипт ещё раз с теми же аргументами.</p>
 
-  <div class="callout warn"><div><p><strong>Windows:</strong> работай в WSL (Ubuntu) и поставь туда <a href="https://brew.sh">Homebrew</a>. Для браузерных проверок агенту понадобится Chrome внутри WSL. Если какой-то шаг скрипта упал, выполни его команды вручную: они лежат в <a href="setup.sh"><code>setup.sh</code></a>, шаги пронумерованы от 1/6 до 6/6, как в таблице ниже.</p></div></div>
+  <div class="callout warn"><div><p><strong>Windows:</strong> работай в WSL (Ubuntu) и поставь туда <a href="https://brew.sh">Homebrew</a>. Для браузерных проверок агенту понадобится Chrome внутри WSL. Если какой-то шаг скрипта упал, выполни его команды вручную: они лежат в <a href="https://github.com/Segodnya/frontend-task-flow/blob/main/setup.sh"><code>setup.sh</code></a>, шаги пронумерованы от 1/6 до 6/6, как в таблице ниже.</p></div></div>
   <div class="callout info"><div><p>Если в репозитории нет файла <code>docs/agents/issue-tracker.md</code>, значит, его ещё не подключили к флоу. Тогда сначала пройди <a href="#new-repo">Настройку нового репозитория</a>: её делают один раз на всю команду.</p></div></div>
   <div class="callout ok"><div><p><strong>Готово, когда:</strong> в репозитории <code>claude</code> → <code>/skills</code> показывает <code>mattpocock-skills:grill-with-docs</code> и <code>segodnya-agents:mr-ready</code>, а <code>/mcp</code> – <code>chrome-devtools ✔ connected</code>.</p></div></div>
 
@@ -713,7 +713,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
         <thead><tr><th>Шаг</th><th>Что ставится</th><th>Зачем</th></tr></thead>
         <tbody>
           <tr><td>1</td><td><code>jq</code>, <code>glab</code>, <code>jira-cli</code> через Homebrew</td><td>агент работает с GitLab и Jira (см. <a href="#tools">Инструменты</a>)</td></tr>
-          <tr><td>2</td><td><code>.claude/settings.local.json</code>; auto mode в <code>~/.claude/settings.json</code>; блок правил в <code>~/.claude/CLAUDE.md</code></td><td>модели и режим работы (таблица ниже); правила агента из <a href="claude-rules.md"><code>claude-rules.md</code></a></td></tr>
+          <tr><td>2</td><td><code>.claude/settings.local.json</code>; auto mode в <code>~/.claude/settings.json</code>; блок правил в <code>~/.claude/CLAUDE.md</code></td><td>модели и режим работы (таблица ниже); правила агента из <a href="https://github.com/Segodnya/frontend-task-flow/blob/main/claude-rules.md"><code>claude-rules.md</code></a></td></tr>
           <tr><td>3</td><td>логины <code>glab</code> и <code>jira</code></td><td>единственный интерактивный шаг. <code>glab auth login</code> скрипт запускает сам. Для Jira печатает подсказку: создать API-токен в настройках безопасности аккаунта и выполнить <code>jira init --server &lt;адрес Jira&gt;</code></td></tr>
           <tr><td>4</td><td>плагины <code>mattpocock-skills</code>, <code>typescript-lsp</code>, <code>context-mode</code>, <code>segodnya-agents</code> (scope <code>local</code>)</td><td><a class="term" href="#g-skill" data-tip="Упакованная инструкция под конкретную задачу. Вызывается командой /имя.">скиллы</a> постановки и реализации, навигация по TS, экономия контекста, самопроверка MR</td></tr>
           <tr><td>5</td><td>команда <code>/checklist-deploy</code></td><td>чек-лист перед отгрузкой. Берётся из репозитория проекта, если она там уже есть, иначе из папки флоу</td></tr>
@@ -1164,7 +1164,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
 <!-- ================= TOOLS ================= -->
 <section id="tools">
   <div class="section-head"><h2>Инструменты</h2></div>
-  <p>Все эти инструменты ставит <a href="setup.sh"><code>setup.sh</code></a>, а вызывает агент.</p>
+  <p>Все эти инструменты ставит <a href="https://github.com/Segodnya/frontend-task-flow/blob/main/setup.sh"><code>setup.sh</code></a>, а вызывает агент.</p>
   <div class="table-wrap"><table>
     <thead><tr><th>Инструмент</th><th>Зачем</th></tr></thead>
     <tbody>
