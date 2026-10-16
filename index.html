@@ -762,7 +762,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
 <pre data-i18n-attr="data-label:step-0.label1" data-label="clone the flow"><code class="language-bash">git clone https://github.com/Segodnya/frontend-task-flow.git ~/frontend-task-flow</code></pre></li>
     <li><span data-i18n="step-0.span4">Go to the repository you'll be working in:</span>
 <pre data-i18n-attr="data-label:step-0.label2" data-label="go to the working repository"><code data-i18n="step-0.code1" class="language-bash">cd ~/work/&lt;repository&gt;</code></pre></li>
-    <li><span data-i18n="step-0.span5">Run the setup script, passing your Jira address and your GitLab host. Without these arguments the script stops with an error:</span>
+    <li><span data-i18n="step-0.span5">Run the setup script, passing your Jira address and your GitLab host. Without these arguments the script stops with an error. It also needs Homebrew, Node.js and Claude Code installed and stops with a hint if one is missing:</span>
 <div class="clawd-host">
 <pre data-i18n-attr="data-label:step-0.label3" data-label="run setup"><code data-i18n="step-0.code2" class="language-bash">bash ~/frontend-task-flow/setup.sh --jira https://&lt;company&gt;.atlassian.net --gitlab gitlab.&lt;company&gt;.com</code></pre>
 <svg class="clawd clawd-sit" width="108" height="78" viewBox="0 0 18 13" aria-hidden="true"><path d="M3 2h12v8H3zM1 6h2v2H1zM15 6h2v2h-2zM16 1h2v5h-2zM4 10h1v3H4zM6 10h1v3H6zM11 10h1v3h-1zM13 10h1v3h-1z"/><path class="eye" d="M5 4h1v2H5zM12 4h1v2h-1z"/></svg>
@@ -832,11 +832,11 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
     <li data-i18n="step-1.li3">Answer the agent's questions until they run out. Usually that's several rounds of 5–7 questions.</li>
   </ol>
 
-<pre data-i18n-attr="data-label:step-1.label1" data-label="grill prompt"><code data-i18n="step-1.code1" class="language-prompt">/mattpocock-skills:grill-with-docs We're building PROJ-100 — picking the button color on the booking page. The plan is in task.md, the mockups are in images. Explore the code with subagents, ask questions until you fully understand the task. Write CONTEXT.md and ADRs to the feature folder. @specs/&lt;feature path&gt;/task.md</code></pre>
+<pre data-i18n-attr="data-label:step-1.label1" data-label="grill prompt"><code data-i18n="step-1.code1" class="language-prompt">/mattpocock-skills:grill-with-docs We're building PROJ-100 — picking the button color on the booking page. The plan is in task.md, the mockups are in images. Explore the code with subagents, ask questions until you fully understand the task. Write GLOSSARY.md and ADRs to the feature folder. @specs/&lt;feature path&gt;/task.md</code></pre>
 
-  <div class="callout info"><div><p data-i18n="step-1.p5"><strong>PROJ-100.</strong> The agent asked whether to let the client pick any color or only a palette. You chose a palette from the design system: on an arbitrary color the button text may become unreadable. The agent recorded this decision in ADR-0001 and added the terms “accent color” and “palette” to <code>CONTEXT.md</code>.</p></div></div>
+  <div class="callout info"><div><p data-i18n="step-1.p5"><strong>PROJ-100.</strong> The agent asked whether to let the client pick any color or only a palette. You chose a palette from the design system: on an arbitrary color the button text may become unreadable. The agent recorded this decision in ADR-0001 and added the terms “accent color” and “palette” to <code>GLOSSARY.md</code>.</p></div></div>
 
-  <div class="callout ok"><div><p data-i18n="step-1.p6"><strong>Done when:</strong> <code>task.md</code> has no open questions left for you, <code>CONTEXT.md</code> is created.</p></div></div>
+  <div class="callout ok"><div><p data-i18n="step-1.p6"><strong>Done when:</strong> <code>task.md</code> has no open questions left for you, <code>GLOSSARY.md</code> is created.</p></div></div>
 
   <details class="acc">
     <summary data-i18n="step-1.summary1">One shot, grill or wayfinder</summary>
@@ -864,7 +864,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
       <p data-i18n="step-1.p10">The brief lives in the shared specifications repository. It's attached as the <code>specs</code> submodule in the <strong>project repository</strong>. The feature's code can also live in other repositories: we call those <strong>code repositories</strong>. Often it's the same repository. Create the feature folder following the structure from the specifications repository README:</p>
 <pre data-i18n-attr="data-label:step-1.label3" class="tree" data-label="feature folder structure"><code data-i18n="step-1.code3" class="language-prompt">specs/&lt;group&gt;/&lt;repository&gt;/frontend/&lt;namespace&gt;/&lt;feature&gt;/
 ├── task.md            # you write it: what and why
-├── CONTEXT.md         # glossary – appears after the grill (GLOSSARY.md in skills 1.3+)
+├── GLOSSARY.md        # glossary – appears after the grill (CONTEXT.md in skills before 1.3)
 ├── images/*.png       # mockup screenshots
 └── docs/
     ├── prd.md         # product PRD: why the feature and for whom
@@ -883,7 +883,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
   <details class="acc">
     <summary data-i18n="step-1.summary3">What happens in a grill session</summary>
     <div class="acc-body">
-      <p data-i18n="step-1.p13">Open a new session in the project repository root so the agent can see both the code and <code>specs</code>. First the agent spends a few minutes exploring the code with subagents, so don't be alarmed by the silence. Then it asks questions in rounds of 5–7 and offers its own recommendation for each. Reply to the whole round in one message. The agent writes the decisions to files right away, so by the end of the conversation you'll have a <code>task.md</code> with no open questions and a <code>CONTEXT.md</code> glossary. For decisions that are hard to undo and not obvious to explain, the agent will suggest an <a class="term" href="#g-adr" data-tip="A short record of an architectural decision: context, decision, reasons, consequences.">ADR</a>.</p>
+      <p data-i18n="step-1.p13">Open a new session in the project repository root so the agent can see both the code and <code>specs</code>. First the agent spends a few minutes exploring the code with subagents, so don't be alarmed by the silence. Then it asks questions in rounds of 5–7 and offers its own recommendation for each. Reply to the whole round in one message. The agent writes the decisions to files right away, so by the end of the conversation you'll have a <code>task.md</code> with no open questions and a <code>GLOSSARY.md</code> glossary. For decisions that are hard to undo and not obvious to explain, the agent will suggest an <a class="term" href="#g-adr" data-tip="A short record of an architectural decision: context, decision, reasons, consequences.">ADR</a>.</p>
       <div class="callout warn"><div><p data-i18n="step-1.p14">Check the agent's recommendations too: they're hypotheses. On one real task a developer rejected 5 recommendations out of 24 and corrected 2 more.</p></div></div>
       <p data-i18n="step-1.p15">If a question is not for you but for the backend or the designer, the agent puts it in <code>task.md</code>, in the section for that addressee. When you get the answer, paste it into the file and continue in a new session. And if the conversation goes off track, say:</p>
 <pre data-i18n-attr="data-label:step-1.label4" data-label="stop the conversation"><code data-i18n="step-1.code4" class="language-prompt">Stop. Write everything we've decided into the plan.</code></pre>
@@ -898,7 +898,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
   loop rounds of 5–7 questions
     A->>D: ❓ question + ➡️ recommendation
     D->>A: answers in one message
-    A->>A: writes decisions to task.md / CONTEXT.md / ADR
+    A->>A: writes decisions to task.md / GLOSSARY.md / ADR
   end</pre>
         <figcaption data-i18n="step-1.figcaption2">The agent scouts the code with subagents, then asks questions in rounds and writes the decisions to files.</figcaption>
       </figure>
@@ -1166,7 +1166,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
         <thead><tr><th data-i18n="context.th1">What</th><th data-i18n="context.th2">Where</th><th data-i18n="context.th3">How it reaches the agent</th></tr></thead>
         <tbody>
           <tr><td data-i18n="context.td1">Rules</td><td data-i18n="context.td2">the repository's <code>CLAUDE.md</code>, <code>.claude/rules/</code></td><td data-i18n="context.td3">automatically at start</td></tr>
-          <tr><td data-i18n="context.td4">Domain language and decisions</td><td><code>CONTEXT.md</code>, ADR</td><td data-i18n="context.td5">by a link from <code>task.md</code></td></tr>
+          <tr><td data-i18n="context.td4">Domain language and decisions</td><td><code>GLOSSARY.md</code>, ADR</td><td data-i18n="context.td5">by a link from <code>task.md</code></td></tr>
           <tr><td data-i18n="context.td6">The task's code and data</td><td data-i18n="context.td7">the repository</td><td data-i18n="context.td8">the agent reads it itself: give paths, don't paste code into the chat</td></tr>
           <tr><td data-i18n="context.td9">Spec and tickets</td><td>Jira</td><td data-i18n="context.td10">by the ticket key in the session's first message</td></tr>
         </tbody>
@@ -1201,7 +1201,7 @@ body from a file: --template &lt;file&gt; --no-input &lt; /dev/null. Fields: Gui
 Blocking — the “Blocks” link (jira issue link). Publish the spec as a comment in the parent ticket.
 We don't set triage labels.</code></pre>
       <h4 data-i18n="new-repo.h42">Rule for domain.md (step 5)</h4>
-<pre data-i18n-attr="data-label:new-repo.label2" data-label="rule for domain.md"><code data-i18n="new-repo.code2" class="language-prompt">Every feature has its own glossary (CONTEXT.md or GLOSSARY.md) and its own ADRs, they live in the feature folder in specs next to task.md. Read the ones that relate to the current task.</code></pre>
+<pre data-i18n-attr="data-label:new-repo.label2" data-label="rule for domain.md"><code data-i18n="new-repo.code2" class="language-prompt">Every feature has its own glossary (GLOSSARY.md or CONTEXT.md) and its own ADRs, they live in the feature folder in specs next to task.md. Read the ones that relate to the current task.</code></pre>
       <div class="callout ok"><div><p data-i18n="new-repo.p4"><strong>Done when:</strong> the MR is merged, and <code>/mattpocock-skills:to-tickets</code> in this repository offers to create tickets in Jira.</p></div></div>
       <p data-i18n="new-repo.p5">If the setup hasn't been done yet, work doesn't stop. Ask <code>to-tickets</code> to save the tickets as markdown files in the repository, then create them in Jira yourself or ask the agent to.</p>
     </div>
@@ -1226,9 +1226,9 @@ We don't set triage labels.</code></pre>
   <ol>
     <li data-i18n="compare.li1">One step, one skill, and a skill reads in a minute. For example, <code>implement</code> is a few lines. When the agent does something strange, the cause is easy to find.</li>
     <li data-i18n="compare.li2">The skills have the conversation before the code, vertical slices and a reviewer in a separate session built in. The same techniques are described in <a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/SUMMARY.md">Mokevnin's book</a> and <a href="https://code.claude.com/docs/en/best-practices">Anthropic's best practices</a>.</li>
-    <li data-i18n="compare.li3">The project is alive: about 290K stars and 24K forks on GitHub, releases every few weeks. Updates arrive through the plugin, and re-running <code>setup.sh</code> breaks nothing.</li>
+    <li data-i18n="compare.li3">The project is alive: about 290K stars and 24K forks on GitHub, a release every one or two months. Updates arrive through the plugin, and re-running <code>setup.sh</code> breaks nothing.</li>
   </ol>
-  <div class="callout info"><div><p data-i18n="compare.p3">Matt's skills are written mostly by one author: the repository has 8 contributors. That's why the skills are consistent with each other. If a big developer community matters, Spec Kit has 318, OpenSpec 145, Superpowers 44. But they also have more documents per task. GitHub data as of October 15, 2026.</p></div></div>
+  <div class="callout info"><div><p data-i18n="compare.p3">Matt's skills are written mostly by one author: the repository has 8 contributors. That's why the skills are consistent with each other. If a big developer community matters, Spec Kit has 321, OpenSpec 145, Superpowers 44. But they also have more documents per task. GitHub data as of October 16, 2026.</p></div></div>
 </section>
 
 <!-- ================= TOOLS ================= -->
@@ -1465,7 +1465,7 @@ const I18N = (() => {
    "step-0.span4": "Go to the repository you'll be working in:",
    "step-0.label2": "go to the working repository",
    "step-0.code1": "cd ~/work/&lt;repository&gt;",
-   "step-0.span5": "Run the setup script, passing your Jira address and your GitLab host. Without these arguments the script stops with an error:",
+   "step-0.span5": "Run the setup script, passing your Jira address and your GitLab host. Without these arguments the script stops with an error. It also needs Homebrew, Node.js and Claude Code installed and stops with a hint if one is missing:",
    "step-0.label3": "run setup",
    "step-0.code2": "bash ~/frontend-task-flow/setup.sh --jira https://&lt;company&gt;.atlassian.net --gitlab gitlab.&lt;company&gt;.com",
    "step-0.p5": "After that the agent can go to Jira and GitLab from the terminal on its own, open the app in the browser and compare it with the mockup. Matt Pocock's skills and our self-review skills appear in the repository. Nothing needs to be committed: plugins and settings go to <code>.claude/settings.local.json</code>, and all the script's files are hidden from git and won't show up in <code>git status</code>.",
@@ -1513,9 +1513,9 @@ const I18N = (() => {
    "step-1.li2": "Open a new session in the project repository root and run <code>/mattpocock-skills:grill-with-docs</code> with the prompt below.",
    "step-1.li3": "Answer the agent's questions until they run out. Usually that's several rounds of 5–7 questions.",
    "step-1.label1": "grill prompt",
-   "step-1.code1": "/mattpocock-skills:grill-with-docs We're building PROJ-100 — picking the button color on the booking page. The plan is in task.md, the mockups are in images. Explore the code with subagents, ask questions until you fully understand the task. Write CONTEXT.md and ADRs to the feature folder. @specs/&lt;feature path&gt;/task.md",
-   "step-1.p5": "<strong>PROJ-100.</strong> The agent asked whether to let the client pick any color or only a palette. You chose a palette from the design system: on an arbitrary color the button text may become unreadable. The agent recorded this decision in ADR-0001 and added the terms “accent color” and “palette” to <code>CONTEXT.md</code>.",
-   "step-1.p6": "<strong>Done when:</strong> <code>task.md</code> has no open questions left for you, <code>CONTEXT.md</code> is created.",
+   "step-1.code1": "/mattpocock-skills:grill-with-docs We're building PROJ-100 — picking the button color on the booking page. The plan is in task.md, the mockups are in images. Explore the code with subagents, ask questions until you fully understand the task. Write GLOSSARY.md and ADRs to the feature folder. @specs/&lt;feature path&gt;/task.md",
+   "step-1.p5": "<strong>PROJ-100.</strong> The agent asked whether to let the client pick any color or only a palette. You chose a palette from the design system: on an arbitrary color the button text may become unreadable. The agent recorded this decision in ADR-0001 and added the terms “accent color” and “palette” to <code>GLOSSARY.md</code>.",
+   "step-1.p6": "<strong>Done when:</strong> <code>task.md</code> has no open questions left for you, <code>GLOSSARY.md</code> is created.",
    "step-1.summary1": "One shot, grill or wayfinder",
    "step-1.pre1": "flowchart TB\n  start([\"New task\"]) --> tiny{\"Tiny diff?<br/>quick to read, cheap to redo\"}\n  tiny -- yes --> one[\"One shot<br/>just ask the agent.<br/>You check the diff itself\"]\n  tiny -- no --> grill[\"/grill-with-docs<br/>agree before the code\"]\n  grill --> big{\"Task bigger<br/>than it looked?\"}\n  big -- yes --> way[\"/wayfinder<br/>turns the conversation into a decision map\"]\n  big -- no --> go[\"Keep grilling\"]",
    "step-1.figcaption1": "A tiny diff gets by with one shot, everything else needs a grill. If the grill sprawls, move to wayfinder.",
@@ -1527,19 +1527,19 @@ const I18N = (() => {
    "step-1.summary2": "The feature folder and task.md",
    "step-1.p10": "The brief lives in the shared specifications repository. It's attached as the <code>specs</code> submodule in the <strong>project repository</strong>. The feature's code can also live in other repositories: we call those <strong>code repositories</strong>. Often it's the same repository. Create the feature folder following the structure from the specifications repository README:",
    "step-1.label3": "feature folder structure",
-   "step-1.code3": "specs/&lt;group&gt;/&lt;repository&gt;/frontend/&lt;namespace&gt;/&lt;feature&gt;/\n├── task.md            # you write it: what and why\n├── CONTEXT.md         # glossary – appears after the grill (GLOSSARY.md in skills 1.3+)\n├── images/*.png       # mockup screenshots\n└── docs/\n    ├── prd.md         # product PRD: why the feature and for whom\n    ├── backend/*.md   # backend tech spec – the API contract\n    └── adr/           # decisions with reasons – appear after the grill",
+   "step-1.code3": "specs/&lt;group&gt;/&lt;repository&gt;/frontend/&lt;namespace&gt;/&lt;feature&gt;/\n├── task.md            # you write it: what and why\n├── GLOSSARY.md        # glossary – appears after the grill (CONTEXT.md in skills before 1.3)\n├── images/*.png       # mockup screenshots\n└── docs/\n    ├── prd.md         # product PRD: why the feature and for whom\n    ├── backend/*.md   # backend tech spec – the API contract\n    └── adr/           # decisions with reasons – appear after the grill",
    "step-1.p11": "Put everything you have in the folder: PRD, backend tech spec, mockups. The more the agent reads on its own, the fewer questions it asks you.",
    "step-1.p12": "You write <code>task.md</code>, 10–20 lines is enough. It needs three things:",
    "step-1.li4": "what to do and why;",
    "step-1.li5": "<strong>what we work with</strong>: local paths to the repositories (<code>@~/work/&lt;repository&gt;/frontend/…</code>), not GitLab links: the agent reads the code itself by path;",
    "step-1.li6": "as the last line: “delegate research to subagents to keep the main context clean”.",
    "step-1.summary3": "What happens in a grill session",
-   "step-1.p13": "Open a new session in the project repository root so the agent can see both the code and <code>specs</code>. First the agent spends a few minutes exploring the code with subagents, so don't be alarmed by the silence. Then it asks questions in rounds of 5–7 and offers its own recommendation for each. Reply to the whole round in one message. The agent writes the decisions to files right away, so by the end of the conversation you'll have a <code>task.md</code> with no open questions and a <code>CONTEXT.md</code> glossary. For decisions that are hard to undo and not obvious to explain, the agent will suggest an <a class=\"term\" href=\"#g-adr\" data-tip=\"A short record of an architectural decision: context, decision, reasons, consequences.\">ADR</a>.",
+   "step-1.p13": "Open a new session in the project repository root so the agent can see both the code and <code>specs</code>. First the agent spends a few minutes exploring the code with subagents, so don't be alarmed by the silence. Then it asks questions in rounds of 5–7 and offers its own recommendation for each. Reply to the whole round in one message. The agent writes the decisions to files right away, so by the end of the conversation you'll have a <code>task.md</code> with no open questions and a <code>GLOSSARY.md</code> glossary. For decisions that are hard to undo and not obvious to explain, the agent will suggest an <a class=\"term\" href=\"#g-adr\" data-tip=\"A short record of an architectural decision: context, decision, reasons, consequences.\">ADR</a>.",
    "step-1.p14": "Check the agent's recommendations too: they're hypotheses. On one real task a developer rejected 5 recommendations out of 24 and corrected 2 more.",
    "step-1.p15": "If a question is not for you but for the backend or the designer, the agent puts it in <code>task.md</code>, in the section for that addressee. When you get the answer, paste it into the file and continue in a new session. And if the conversation goes off track, say:",
    "step-1.label4": "stop the conversation",
    "step-1.code4": "Stop. Write everything we've decided into the plan.",
-   "step-1.pre2": "sequenceDiagram\n  participant D as Developer\n  participant A as Agent\n  participant S as Subagents\n  D->>A: task.md + grill-with-docs\n  A->>S: code recon (in parallel)\n  S-->>A: how it works today\n  loop rounds of 5–7 questions\n    A->>D: ❓ question + ➡️ recommendation\n    D->>A: answers in one message\n    A->>A: writes decisions to task.md / CONTEXT.md / ADR\n  end",
+   "step-1.pre2": "sequenceDiagram\n  participant D as Developer\n  participant A as Agent\n  participant S as Subagents\n  D->>A: task.md + grill-with-docs\n  A->>S: code recon (in parallel)\n  S-->>A: how it works today\n  loop rounds of 5–7 questions\n    A->>D: ❓ question + ➡️ recommendation\n    D->>A: answers in one message\n    A->>A: writes decisions to task.md / GLOSSARY.md / ADR\n  end",
    "step-1.figcaption2": "The agent scouts the code with subagents, then asks questions in rounds and writes the decisions to files.",
    "step-1.p16": "A resolved question in <code>task.md</code> looks like this: <code>~~iframe or markup?~~ **decided:** markup [ADR-0001]</code>.",
    "step-2.h21": "Split into tickets",
@@ -1716,7 +1716,7 @@ const I18N = (() => {
    "new-repo.code1": "Tasks live in Jira (&lt;Jira address&gt;), we work through jira-cli.\nRead: jira issue view &lt;KEY&gt; --plain. Create: jira issue create -p &lt;PROJECT&gt; --parent &lt;KEY&gt;,\nbody from a file: --template &lt;file&gt; --no-input &lt; /dev/null. Fields: Guild — Frontend, assignee — me.\nBlocking — the “Blocks” link (jira issue link). Publish the spec as a comment in the parent ticket.\nWe don't set triage labels.",
    "new-repo.h42": "Rule for domain.md (step 5)",
    "new-repo.label2": "rule for domain.md",
-   "new-repo.code2": "Every feature has its own glossary (CONTEXT.md or GLOSSARY.md) and its own ADRs, they live in the feature folder in specs next to task.md. Read the ones that relate to the current task.",
+   "new-repo.code2": "Every feature has its own glossary (GLOSSARY.md or CONTEXT.md) and its own ADRs, they live in the feature folder in specs next to task.md. Read the ones that relate to the current task.",
    "new-repo.p4": "<strong>Done when:</strong> the MR is merged, and <code>/mattpocock-skills:to-tickets</code> in this repository offers to create tickets in Jira.",
    "new-repo.p5": "If the setup hasn't been done yet, work doesn't stop. Ask <code>to-tickets</code> to save the tickets as markdown files in the repository, then create them in Jira yourself or ask the agent to.",
    "compare.h21": "Why Matt's skills",
@@ -1745,8 +1745,8 @@ const I18N = (() => {
    "compare.p2": "We chose Matt's skills for three reasons:",
    "compare.li1": "One step, one skill, and a skill reads in a minute. For example, <code>implement</code> is a few lines. When the agent does something strange, the cause is easy to find.",
    "compare.li2": "The skills have the conversation before the code, vertical slices and a reviewer in a separate session built in. The same techniques are described in <a href=\"https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/SUMMARY.md\">Mokevnin's book</a> and <a href=\"https://code.claude.com/docs/en/best-practices\">Anthropic's best practices</a>.",
-   "compare.li3": "The project is alive: about 290K stars and 24K forks on GitHub, releases every few weeks. Updates arrive through the plugin, and re-running <code>setup.sh</code> breaks nothing.",
-   "compare.p3": "Matt's skills are written mostly by one author: the repository has 8 contributors. That's why the skills are consistent with each other. If a big developer community matters, Spec Kit has 318, OpenSpec 145, Superpowers 44. But they also have more documents per task. GitHub data as of October 15, 2026.",
+   "compare.li3": "The project is alive: about 290K stars and 24K forks on GitHub, a release every one or two months. Updates arrive through the plugin, and re-running <code>setup.sh</code> breaks nothing.",
+   "compare.p3": "Matt's skills are written mostly by one author: the repository has 8 contributors. That's why the skills are consistent with each other. If a big developer community matters, Spec Kit has 321, OpenSpec 145, Superpowers 44. But they also have more documents per task. GitHub data as of October 16, 2026.",
    "tools.h21": "Tools",
    "tools.p1": "All these tools are installed by <a href=\"https://github.com/Segodnya/frontend-task-flow/blob/main/setup.sh\"><code>setup.sh</code></a> and called by the agent.",
    "tools.th1": "Tool",
@@ -1962,7 +1962,7 @@ const I18N = (() => {
    "step-0.span4": "Перейди в репозиторий, в котором будешь работать:",
    "step-0.label2": "перейти в рабочий репозиторий",
    "step-0.code1": "cd ~/work/&lt;репозиторий&gt;",
-   "step-0.span5": "Запусти скрипт настройки, передав адрес своей Jira и хост своего GitLab. Без этих аргументов скрипт остановится с ошибкой:",
+   "step-0.span5": "Запусти скрипт настройки, передав адрес своей Jira и хост своего GitLab. Без этих аргументов скрипт остановится с ошибкой. Ещё ему нужны установленные Homebrew, Node.js и Claude Code: без них он остановится с подсказкой:",
    "step-0.label3": "запустить настройку",
    "step-0.code2": "bash ~/frontend-task-flow/setup.sh --jira https://&lt;компания&gt;.atlassian.net --gitlab gitlab.&lt;компания&gt;.com",
    "step-0.p5": "После этого агент сможет сам ходить в Jira и GitLab из терминала, открывать стенд в браузере и сравнивать его с макетом. В репозитории появятся скиллы Мэтта Покока и наши скиллы самопроверки. Коммитить ничего не нужно: плагины и настройки записываются в <code>.claude/settings.local.json</code>, а все файлы скрипта скрыты от git и в <code>git status</code> не появятся.",
@@ -2010,9 +2010,9 @@ const I18N = (() => {
    "step-1.li2": "Открой новую сессию в корне репозитория проекта и запусти <code>/mattpocock-skills:grill-with-docs</code> с промптом ниже.",
    "step-1.li3": "Отвечай на вопросы агента, пока они не кончатся. Обычно это несколько раундов по 5–7 вопросов.",
    "step-1.label1": "промпт grill",
-   "step-1.code1": "/mattpocock-skills:grill-with-docs Разрабатываем PROJ-100 — выбор цвета кнопки на странице бронирования. План в task.md, макеты в images. Изучи код через субагентов, задай вопросы, чтобы полностью понять задачу. CONTEXT.md и ADR пиши в папку фичи. @specs/&lt;путь фичи&gt;/task.md",
-   "step-1.p5": "<strong>PROJ-100.</strong> Агент спросил, давать ли клиенту любой цвет или только палитру. Ты выбрал палитру из дизайн-системы: на произвольном цвете текст кнопки может стать нечитаемым. Агент записал это решение в ADR-0001, а в <code>CONTEXT.md</code> добавил термины «акцентный цвет» и «палитра».",
-   "step-1.p6": "<strong>Готово, когда:</strong> в <code>task.md</code> не осталось открытых вопросов к тебе, <code>CONTEXT.md</code> создан.",
+   "step-1.code1": "/mattpocock-skills:grill-with-docs Разрабатываем PROJ-100 — выбор цвета кнопки на странице бронирования. План в task.md, макеты в images. Изучи код через субагентов, задай вопросы, чтобы полностью понять задачу. GLOSSARY.md и ADR пиши в папку фичи. @specs/&lt;путь фичи&gt;/task.md",
+   "step-1.p5": "<strong>PROJ-100.</strong> Агент спросил, давать ли клиенту любой цвет или только палитру. Ты выбрал палитру из дизайн-системы: на произвольном цвете текст кнопки может стать нечитаемым. Агент записал это решение в ADR-0001, а в <code>GLOSSARY.md</code> добавил термины «акцентный цвет» и «палитра».",
+   "step-1.p6": "<strong>Готово, когда:</strong> в <code>task.md</code> не осталось открытых вопросов к тебе, <code>GLOSSARY.md</code> создан.",
    "step-1.summary1": "One shot, grill или wayfinder",
    "step-1.pre1": "flowchart TB\n  start([\"Новая задача\"]) --> tiny{\"Дифф крошечный?<br/>быстро прочитать, дёшево переделать\"}\n  tiny -- да --> one[\"One shot<br/>просто попроси агента.<br/>Сверяешься уже по диффу\"]\n  tiny -- нет --> grill[\"/grill-with-docs<br/>договариваетесь до кода\"]\n  grill --> big{\"Задача больше,<br/>чем казалось?\"}\n  big -- да --> way[\"/wayfinder<br/>превращает разговор в карту решений\"]\n  big -- нет --> go[\"Продолжаешь grill\"]",
    "step-1.figcaption1": "Крошечному диффу хватит one shot, остальному нужен grill. Если grill расползается, переходи в wayfinder.",
@@ -2024,19 +2024,19 @@ const I18N = (() => {
    "step-1.summary2": "Папка фичи и task.md",
    "step-1.p10": "Постановка хранится в общем репозитории спецификаций. Он подключён сабмодулем <code>specs</code> в <strong>репозиторий проекта</strong>. Код фичи может лежать и в других репозиториях: их мы называем <strong>репозиториями кода</strong>. Часто это один и тот же репозиторий. Папку фичи заводи по структуре из README репозитория спецификаций:",
    "step-1.label3": "структура папки фичи",
-   "step-1.code3": "specs/&lt;группа&gt;/&lt;репозиторий&gt;/frontend/&lt;namespace&gt;/&lt;feature&gt;/\n├── task.md            # пишешь ты: что и зачем\n├── CONTEXT.md         # глоссарий – появится после grill (в скиллах 1.3+ – GLOSSARY.md)\n├── images/*.png       # скриншоты макетов\n└── docs/\n    ├── prd.md         # PRD продукта: зачем фича и для кого\n    ├── backend/*.md   # НТЗ бэкенда – контракт API\n    └── adr/           # решения с причинами – появятся после grill",
+   "step-1.code3": "specs/&lt;группа&gt;/&lt;репозиторий&gt;/frontend/&lt;namespace&gt;/&lt;feature&gt;/\n├── task.md            # пишешь ты: что и зачем\n├── GLOSSARY.md        # глоссарий – появится после grill (в скиллах до 1.3 – CONTEXT.md)\n├── images/*.png       # скриншоты макетов\n└── docs/\n    ├── prd.md         # PRD продукта: зачем фича и для кого\n    ├── backend/*.md   # НТЗ бэкенда – контракт API\n    └── adr/           # решения с причинами – появятся после grill",
    "step-1.p11": "Положи в папку всё, что у тебя есть: PRD, НТЗ бэкенда, макеты. Чем больше агент прочитает сам, тем меньше вопросов задаст тебе.",
    "step-1.p12": "<code>task.md</code> пишешь ты, хватит 10–20 строк. В нём нужны три вещи:",
    "step-1.li4": "что сделать и зачем;",
    "step-1.li5": "<strong>с чем работаем</strong>: локальные пути к репозиториям (<code>@~/work/&lt;репозиторий&gt;/frontend/…</code>), а не ссылки на GitLab: по путям агент читает код сам;",
    "step-1.li6": "последней строкой: «исследование поручи субагентам, чтобы оставить основной контекст чистым».",
    "step-1.summary3": "Что будет в сессии grill",
-   "step-1.p13": "Открой новую сессию в корне репозитория проекта, чтобы агенту были видны и код, и <code>specs</code>. Сначала агент несколько минут изучает код через субагентов, так что не пугайся тишины. Потом он задаёт вопросы раундами по 5–7 штук и к каждому предлагает свою рекомендацию. Отвечай одним сообщением на весь раунд. Решения агент сразу записывает в файлы, поэтому к концу разговора у тебя будет <code>task.md</code> без открытых вопросов и глоссарий <code>CONTEXT.md</code>. На решения, которые трудно отменить и неочевидно объяснить, агент предложит <a class=\"term\" href=\"#g-adr\" data-tip=\"Короткая запись архитектурного решения: контекст, решение, причины, последствия.\">ADR</a>.",
+   "step-1.p13": "Открой новую сессию в корне репозитория проекта, чтобы агенту были видны и код, и <code>specs</code>. Сначала агент несколько минут изучает код через субагентов, так что не пугайся тишины. Потом он задаёт вопросы раундами по 5–7 штук и к каждому предлагает свою рекомендацию. Отвечай одним сообщением на весь раунд. Решения агент сразу записывает в файлы, поэтому к концу разговора у тебя будет <code>task.md</code> без открытых вопросов и глоссарий <code>GLOSSARY.md</code>. На решения, которые трудно отменить и неочевидно объяснить, агент предложит <a class=\"term\" href=\"#g-adr\" data-tip=\"Короткая запись архитектурного решения: контекст, решение, причины, последствия.\">ADR</a>.",
    "step-1.p14": "Рекомендацию агента тоже проверяй: это гипотеза. На одной реальной задаче разработчик отклонил 5 рекомендаций из 24 и ещё 2 поправил.",
    "step-1.p15": "Если вопрос не к тебе, а к бэкенду или дизайнеру, агент вынесет его в <code>task.md</code>, в секцию по адресату. Когда получишь ответ, вставь его в файл и продолжай в новой сессии. А если разговор ушёл не туда, скажи:",
    "step-1.label4": "остановить разговор",
    "step-1.code4": "Стой. Запиши всё, что решили, в план.",
-   "step-1.pre2": "sequenceDiagram\n  participant Р as Разработчик\n  participant А as Агент\n  participant С as Субагенты\n  Р->>А: task.md + grill-with-docs\n  А->>С: разведка кода (параллельно)\n  С-->>А: как устроено сейчас\n  loop раунды по 5–7 вопросов\n    А->>Р: ❓ вопрос + ➡️ рекомендация\n    Р->>А: ответы одним сообщением\n    А->>А: пишет решения в task.md / CONTEXT.md / ADR\n  end",
+   "step-1.pre2": "sequenceDiagram\n  participant Р as Разработчик\n  participant А as Агент\n  participant С as Субагенты\n  Р->>А: task.md + grill-with-docs\n  А->>С: разведка кода (параллельно)\n  С-->>А: как устроено сейчас\n  loop раунды по 5–7 вопросов\n    А->>Р: ❓ вопрос + ➡️ рекомендация\n    Р->>А: ответы одним сообщением\n    А->>А: пишет решения в task.md / GLOSSARY.md / ADR\n  end",
    "step-1.figcaption2": "Агент разведывает код через субагентов, потом задаёт вопросы раундами и пишет решения в файлы.",
    "step-1.p16": "Решённый вопрос в <code>task.md</code> выглядит так: <code>~~iframe или вёрстка?~~ **решено:** вёрстка [ADR-0001]</code>.",
    "step-2.h21": "Разбить на тикеты",
@@ -2213,7 +2213,7 @@ const I18N = (() => {
    "new-repo.code1": "Задачи живут в Jira (&lt;адрес Jira&gt;), работаем через jira-cli.\nЧитать: jira issue view &lt;KEY&gt; --plain. Создавать: jira issue create -p &lt;PROJECT&gt; --parent &lt;KEY&gt;,\nтело из файла: --template &lt;file&gt; --no-input &lt; /dev/null. Поля: Гильдия — Frontend, исполнитель — я.\nБлокировки — связь «Блокирует» (jira issue link). Спеку публикуй комментарием в родительский тикет.\nМетки триажа не ставим.",
    "new-repo.h42": "Правило для domain.md (шаг 5)",
    "new-repo.label2": "правило для domain.md",
-   "new-repo.code2": "У каждой фичи свой глоссарий (CONTEXT.md или GLOSSARY.md) и свои ADR, они лежат в папке фичи в specs рядом с task.md. Читай те, что относятся к текущей задаче.",
+   "new-repo.code2": "У каждой фичи свой глоссарий (GLOSSARY.md или CONTEXT.md) и свои ADR, они лежат в папке фичи в specs рядом с task.md. Читай те, что относятся к текущей задаче.",
    "new-repo.p4": "<strong>Готово, когда:</strong> MR смержен, и <code>/mattpocock-skills:to-tickets</code> в этом репозитории предлагает завести тикеты в Jira.",
    "new-repo.p5": "Если настройку ещё не сделали, работа не встанет. Попроси <code>to-tickets</code> сохранить тикеты markdown-файлами в репозитории, а потом заведи их в Jira сам или попроси об этом агента.",
    "compare.h21": "Почему скиллы Мэтта",
@@ -2242,8 +2242,8 @@ const I18N = (() => {
    "compare.p2": "Мы выбрали скиллы Мэтта по трём причинам:",
    "compare.li1": "Один шаг – один скилл, а скилл читается за минуту. Например, <code>implement</code> занимает несколько строк. Когда агент делает что-то странное, причину легко найти.",
    "compare.li2": "В скиллы заложены разговор до кода, вертикальные срезы и ревьюер в отдельной сессии. Те же приёмы описывают <a href=\"https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/SUMMARY.md\">книга Мокевнина</a> и <a href=\"https://code.claude.com/docs/en/best-practices\">best practices Anthropic</a>.",
-   "compare.li3": "Проект живой: около 290 тыс. звёзд и 24 тыс. форков на GitHub, релизы раз в несколько недель. Обновление приходит через плагин, повторный запуск <code>setup.sh</code> ничего не ломает.",
-   "compare.p3": "Скиллы Мэтта пишет в основном один автор: у репозитория 8 контрибьюторов. Поэтому скиллы согласованы друг с другом. Если важно большое сообщество разработчиков, у Spec Kit их 318, у OpenSpec 145, у Superpowers 44. Зато там и документов на задачу больше. Данные GitHub на 15 октября 2026.",
+   "compare.li3": "Проект живой: около 290 тыс. звёзд и 24 тыс. форков на GitHub, релиз раз в один-два месяца. Обновление приходит через плагин, повторный запуск <code>setup.sh</code> ничего не ломает.",
+   "compare.p3": "Скиллы Мэтта пишет в основном один автор: у репозитория 8 контрибьюторов. Поэтому скиллы согласованы друг с другом. Если важно большое сообщество разработчиков, у Spec Kit их 321, у OpenSpec 145, у Superpowers 44. Зато там и документов на задачу больше. Данные GitHub на 16 октября 2026.",
    "tools.h21": "Инструменты",
    "tools.p1": "Все эти инструменты ставит <a href=\"https://github.com/Segodnya/frontend-task-flow/blob/main/setup.sh\"><code>setup.sh</code></a>, а вызывает агент.",
    "tools.th1": "Инструмент",
