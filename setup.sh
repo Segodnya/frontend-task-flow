@@ -38,7 +38,7 @@ cd "$repo"
 say "Repository: $repo"
 say "Jira: $JIRA_URL, GitLab: $GITLAB_HOST"
 
-say "1/6 Checking tools"
+say "1/4 Checking tools"
 command -v brew   >/dev/null || { echo "Homebrew is missing (macOS, Linux, WSL): https://brew.sh"; exit 1; }
 command -v claude >/dev/null || { echo "Claude Code is missing: npm i -g @anthropic-ai/claude-code"; exit 1; }
 command -v node   >/dev/null || { echo "Node.js is missing: brew install node"; exit 1; }
@@ -47,7 +47,7 @@ for tool in jq glab jira-cli; do
   command -v "$bin" >/dev/null || brew install "$tool"
 done
 
-say "2/6 Settings in .claude/settings.local.json, auto mode in ~/.claude/settings.json, agent rules in ~/.claude/CLAUDE.md"
+say "2/4 Settings in .claude/settings.local.json, auto mode in ~/.claude/settings.json, agent rules in ~/.claude/CLAUDE.md"
 mkdir -p .claude ~/.claude
 settings=.claude/settings.local.json
 [ -f "$settings" ] || echo '{}' > "$settings"
@@ -83,36 +83,21 @@ cat "$claude_md.tmp" > "$claude_md" && rm "$claude_md.tmp"
 
 exclude=$(git rev-parse --git-path info/exclude)
 mkdir -p "$(dirname "$exclude")"
-for p in .claude/settings.local.json .claude/commands/checklist-deploy.md .tmp-shots/; do
+for p in .claude/settings.local.json .tmp-shots/; do
   grep -qxF "$p" "$exclude" 2>/dev/null || echo "$p" >> "$exclude"
 done
 
-say "3/6 Logins (interactive, once)"
+say "3/4 Logins (interactive, once)"
 glab auth status --hostname "$GITLAB_HOST" >/dev/null 2>&1 || glab auth login --hostname "$GITLAB_HOST"
 [ -f ~/.config/.jira/.config.yml ] || { warn "Jira: create an API token in your Jira account security settings, then run:"; echo "  export JIRA_API_TOKEN=<token> && jira init --server $JIRA_URL"; }
 
-say "4/6 Plugins (this repository only)"
-for m in anthropics/claude-plugins-official mksglu/context-mode Segodnya/agents; do
+say "4/4 Plugins (this repository only)"
+for m in anthropics/claude-plugins-official mksglu/context-mode Segodnya/agents Segodnya/frontend-task-flow; do
   claude plugin marketplace add --scope local "$m" || true
 done
 for p in mattpocock-skills@claude-plugins-official typescript-lsp@claude-plugins-official context-mode@context-mode \
-         segodnya-agents@segodnya-agents; do
+         segodnya-agents@segodnya-agents frontend-task-flow@frontend-task-flow; do
   claude plugin install --scope local "$p" || true
 done
 
-say "5/6 checklist-deploy command"
-# A repository may ship its own command; then we keep it
-if [ -f .claude/commands/checklist-deploy.md ]; then
-  :
-elif [ -f "$flow_dir/checklist-deploy.md" ]; then
-  mkdir -p .claude/commands
-  cp "$flow_dir/checklist-deploy.md" .claude/commands/checklist-deploy.md
-else
-  warn "$flow_dir/checklist-deploy.md not found: /checklist-deploy command not installed"
-fi
-
-say "6/6 Browser for the agent (chrome-devtools MCP)"
-claude mcp get chrome-devtools >/dev/null 2>&1 \
-  || claude mcp add chrome-devtools --scope local -- npx chrome-devtools-mcp@latest --acceptInsecureCerts
-
-say "Done. Check: claude -> /skills (expect segodnya-agents:mr-ready, mattpocock-skills:grill-with-docs), /mcp (chrome-devtools)"
+say "Done. Check: claude -> /skills (expect segodnya-agents:mr-ready, mattpocock-skills:grill-with-docs, frontend-task-flow:checklist-deploy), /mcp (chrome-devtools)"

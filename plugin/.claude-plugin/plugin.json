@@ -1,0 +1,6 @@
+{
+  "name": "frontend-task-flow",
+  "description": "Frontend task flow: the deploy checklist skill and the chrome-devtools MCP",
+  "author": { "name": "Kira Kurentsov" },
+  "homepage": "https://github.com/Segodnya/frontend-task-flow"
+}

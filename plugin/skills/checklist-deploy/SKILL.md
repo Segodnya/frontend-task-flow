@@ -1,3 +1,9 @@
+---
+name: checklist-deploy
+description: Builds the deploy checklist for a change from a git diff (staged, a commit range, or a branch against its MR base). Use when the user asks for a deploy checklist or a checklist for an MR.
+argument-hint: "[staged | <sha1>..<sha2> | <feature> against <base> | <branch>]"
+---
+
 # Deploy checklist for a change
 
 Build the checklist from a diff. The diff source is passed in `$ARGUMENTS`.

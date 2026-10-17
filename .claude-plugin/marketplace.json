@@ -1,0 +1,14 @@
+{
+  "name": "frontend-task-flow",
+  "owner": {
+    "name": "Kira Kurentsov"
+  },
+  "description": "Claude Code setup for the frontend task flow",
+  "plugins": [
+    {
+      "name": "frontend-task-flow",
+      "source": "./plugin",
+      "description": "Frontend task flow: the deploy checklist skill and the chrome-devtools MCP"
+    }
+  ]
+}
