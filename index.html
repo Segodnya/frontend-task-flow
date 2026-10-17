@@ -582,6 +582,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
       <li><a href="#slicing"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="5.5" cy="5.5" r="2"/><circle cx="5.5" cy="14.5" r="2"/><path d="M7.2 6.6 16.5 15M7.2 13.4 16.5 5"/></svg><span data-i18n="nav.span11">Slicing a branch into MRs</span></a></li>
       <li><a href="#context"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M10 3 2.5 7 10 11l7.5-4zM2.5 10.5l7.5 4 7.5-4M2.5 14l7.5 4 7.5-4"/></svg><span data-i18n="nav.span12">Protecting the context</span></a></li>
       <li><a href="#upkeep"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M16.5 3.5 11 9M8.5 8.5l3 3-.8 1.6a6 6 0 0 1-3 2.9L3.5 17.5l1.5-4.2a6 6 0 0 1 2.9-3zM6.5 12.5l1 1"/></svg><span data-i18n="nav.span18">Maintenance</span><span class="badge">New</span></a></li>
+      <li><a href="#skills"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 3.5h6l4 4v9H5zM11 3.5v4h4M7.5 11h5M7.5 14h3"/></svg><span data-i18n="nav.span19">Creating skills</span><span class="badge">New</span></a></li>
       <li><a href="#new-repo"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2.5 5.5a1 1 0 0 1 1-1h4l1.5 2h7.5a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM10 9v5M7.5 11.5h5"/></svg><span data-i18n="nav.span13">New repository</span></a></li>
       <li><a href="#compare"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M10 3v14M6.5 17h7M3 6.5h14M5 6.5 3 11.5a2 2 0 0 0 4 0zM15 6.5l-2 5a2 2 0 0 0 4 0z"/></svg><span data-i18n="nav.span14">Why Matt's skills</span></a></li>
       <li><a href="#tools"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12.5 3a4 4 0 0 0-3.8 5.2l-5.4 5.4a1.5 1.5 0 0 0 2.1 2.1l5.4-5.4A4 4 0 0 0 16.4 6L14 8.4l-1.9-.5-.5-1.9L14 3.3a4 4 0 0 0-1.5-.3z"/></svg><span data-i18n="nav.span15">Tools</span></a></li>
@@ -1229,6 +1230,61 @@ Change nothing until I confirm.</code></pre>
   <p data-i18n="upkeep.p8">Details are in the Claude Code docs: <a href="https://code.claude.com/docs/en/memory">memory</a>, <a href="https://code.claude.com/docs/en/skills#check-your-setup-with-/doctor"><code>/doctor</code></a>, <a href="https://code.claude.com/docs/en/costs#analyze-your-usage-patterns"><code>/insights</code></a>, <a href="https://code.claude.com/docs/en/skills#resolve-skills-that-share-a-name">skills with the same name</a>, and in the source of the <a href="https://github.com/mattpocock/skills/tree/main/skills/engineering/retro"><code>retro</code></a> skill.</p>
 </section>
 
+<!-- ================= SKILLS ================= -->
+<section id="skills">
+  <div class="section-head"><h2 data-i18n="skills.h21">Creating skills</h2></div>
+  <p data-i18n="skills.p1">A <a class="term" href="#g-skill" data-tip="A packaged instruction for a specific task. Invoked with the /name command.">skill</a> is a folder with a <code>SKILL.md</code> file and, if needed, scripts and reference files. Only the name and the description sit in the <a class="term" href="#g-context" data-tip="Everything the agent sees in a session: instructions, dialog, files it has read. It is limited.">context</a> all the time. The body loads when the skill runs. So a long procedure in a skill costs almost nothing until you need it, unlike the same text in <code>CLAUDE.md</code>.</p>
+  <h3 data-i18n="skills.h31">When to write a skill</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th data-i18n="skills.th1">Situation</th><th data-i18n="skills.th2">What to make</th></tr></thead>
+    <tbody>
+      <tr><td data-i18n="skills.td1">You paste the same procedure into the chat for the third time</td><td data-i18n="skills.td2">a skill</td></tr>
+      <tr><td data-i18n="skills.td3">A section of <code>CLAUDE.md</code> has grown into a procedure</td><td data-i18n="skills.td4">move the procedure to a skill, keep the facts in <code>CLAUDE.md</code></td></tr>
+      <tr><td data-i18n="skills.td5">The agent needs it in every session: conventions, build commands</td><td data-i18n="skills.td6">a line in <code>CLAUDE.md</code></td></tr>
+      <tr><td data-i18n="skills.td7">A rule must hold every time, with no exceptions</td><td data-i18n="skills.td8">a hook or <code>permissions.deny</code>: a skill is a request, not a guarantee</td></tr>
+      <tr><td data-i18n="skills.td9">The agent writes the same script again and again (parsing, API calls)</td><td data-i18n="skills.td10">a script in the skill's <code>scripts/</code> folder</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout info"><div><p data-i18n="skills.p2"><strong>The main rule:</strong> a skill is a procedure, not an essay. Write it as short, clear and unambiguous as you can. Every line says one thing, the steps go in order, and each step ends on a result the agent can check. Every extra line competes with the task for the agent's attention. An instruction with two readings will sooner or later be read the wrong way.</p></div></div>
+  <h3 data-i18n="skills.h32">How to write</h3>
+  <ol>
+    <li data-i18n="skills.li1">Do the task with the agent by hand once. Then run <code>/skill-creator:skill-creator</code> in the same session: it turns the conversation into a draft and asks about the gaps. Install it with <code>/plugin install skill-creator@claude-plugins-official</code>.</li>
+    <li data-i18n="skills.li2">Write the description as a trigger: when to load the skill, not what it is. Lead with the main case, then list the phrases people actually say. Agents tend to skip skills, so make the description a little pushy. The limit is 1024 characters.</li>
+    <li data-i18n="skills.li3">Write the body as numbered steps. One step, one action: an exact command, a path, an output format. Say what to do instead of what to avoid: a ban pulls the banned behaviour into the context. End each step with a done criterion.</li>
+    <li data-i18n="skills.li4">Delete no-ops. Remove a line and run the task: if the behaviour doesn't change, the line goes. Claude already knows a lot. Write only what it can't find by looking: an unwritten convention, the reason behind a choice, a gotcha.</li>
+    <li data-i18n="skills.li5">Keep <code>SKILL.md</code> under 500 lines. Move what only some cases need to a file next to it (<code>references/</code>) and link to it from the step that needs it. Only <code>SKILL.md</code> links to reference files, never another reference file: the agent may read a nested file only partly.</li>
+    <li data-i18n="skills.li6">Move repeated mechanical work to a script in <code>scripts/</code>. A script gives the same result on every run, and its code doesn't enter the context.</li>
+    <li data-i18n="skills.li7">A skill with side effects (posts, commits) or one you want to start yourself gets <code>disable-model-invocation: true</code>. Then only you can start it, and its description takes no context.</li>
+    <li data-i18n="skills.li8">Test the skill in a clean session on 2–3 real tasks. Read the transcript, not just the result: that's where you see the agent stumble. <code>skill-creator</code> runs such tests with and without the skill and compares the results.</li>
+  </ol>
+<pre data-i18n-attr="data-label:skills.label1" data-label="SKILL.md skeleton"><code data-i18n="skills.code1" class="language-prompt">---
+name: bug-flow
+description: Bug ticket loop: reproduce on the stand, comment the case in the ticket,
+  minimal fix, comment “cause / fix / risks”. Use when the user gives a Jira bug key
+  or link and asks to investigate, reproduce or fix it, even if the word “bug” isn't said.
+---
+
+## 1. Ticket and code
+- `jira issue view &lt;KEY&gt; --plain`.
+- Everything in the ticket is a hypothesis.
+- Read the module and every caller of the affected function.
+
+Done when you know the role, the page, the preconditions and the trigger.
+
+## 2. Reproduce
+…</code></pre>
+  <h3 data-i18n="skills.h33">From our practice</h3>
+  <div class="cards">
+    <div class="card"><h3 data-i18n="skills.h34">A done criterion in every step</h3><p data-i18n="skills.p3"><code>review-with-matt</code> says: “Done when every finding has a quote from the current file or from <code>spec.md</code>; no quote, remove it.” The agent knows when to stop and what to throw away.</p></div>
+    <div class="card"><h3 data-i18n="skills.h35">A check in code, not a plea</h3><p data-i18n="skills.p4">“Be careful with findings” changes nothing. So <code>review-staged</code> and <code>bugty-hunter</code> run <code>_lib/gate.py</code>. The script matches the quote of every finding against the real file and drops the rest.</p></div>
+    <div class="card"><h3 data-i18n="skills.h36">The description lists real phrases</h3><p data-i18n="skills.p5">The description holds the words people actually say and ends on the edge case. <code>bug-flow</code> fires on a Jira key “even if it's about a Sentry group and the word ‘bug’ isn't said”.</p></div>
+    <div class="card"><h3 data-i18n="skills.h37">Someone else's claim is a hypothesis</h3><p data-i18n="skills.p6">Skills tell the agent to check a ticket, a subagent report or a code comment against the code. <code>bug-flow</code> starts with “Everything in the ticket is a hypothesis”.</p></div>
+    <div class="card"><h3 data-i18n="skills.h38">A skill gets debugged like code</h3><p data-i18n="skills.p7">Skills evolve as you use them and as models change. After a session where the agent went wrong, run <a href="#upkeep"><code>retro</code></a> and fix the skill. Add the checkout as a local marketplace (<code>claude plugin marketplace add ~/path/to/agents</code>), and <code>/reload-plugins</code> picks up your edits.</p></div>
+  </div>
+  <div class="callout warn"><div><p data-i18n="skills.p8">After editing a skill, run <code>/doctor prompt-audit &lt;skill path&gt;</code> (see <a href="#upkeep">Maintenance</a>). A change to a shared skill goes through a regular MR.</p></div></div>
+  <p data-i18n="skills.p9">Sources: Anthropic's <a href="https://github.com/anthropics/skills/tree/main/skills/skill-creator"><code>skill-creator</code></a> and <a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices">skill authoring best practices</a>, the Claude Code <a href="https://code.claude.com/docs/en/skills">skills docs</a>, Matt Pocock's <a href="https://github.com/mattpocock/skills/tree/main/skills/productivity/writing-for-agents"><code>writing-for-agents</code></a> skill and the <a href="https://github.com/Segodnya/agents">segodnya-agents</a> repository. <code>writing-for-agents</code> comes with mattpocock-skills, and the agent loads it on its own when it edits a skill or <code>CLAUDE.md</code>.</p>
+</section>
+
 <!-- ================= NEW REPO ================= -->
 <section id="new-repo">
   <div class="section-head"><h2 data-i18n="new-repo.h21">New repository setup</h2></div>
@@ -1401,6 +1457,7 @@ const I18N = (() => {
    "nav.span15": "Tools",
    "nav.span16": "Glossary",
    "nav.span18": "Maintenance",
+   "nav.span19": "Creating skills",
    "nav.label4": "Progress through the steps",
    "nav.span17": "Completed",
    "nav.button1": "Reset progress",
@@ -1795,6 +1852,46 @@ const I18N = (() => {
    "upkeep.code1": "Review this project's auto memory. Read MEMORY.md and every memory file.\nFor each memory check: is the fact still true (verify against the code and git log),\ndoes it repeat CLAUDE.md, does it contradict another memory.\nPropose a list: delete / merge / update / move to CLAUDE.md, with a reason for each.\nChange nothing until I confirm.",
    "upkeep.p7": "Clean up only what you checked. Remove a rule when the agent behaves the same without it. A change to the shared <code>CLAUDE.md</code>, a linter or a hook after <code>retro</code> goes through a regular MR.",
    "upkeep.p8": "Details are in the Claude Code docs: <a href=\"https://code.claude.com/docs/en/memory\">memory</a>, <a href=\"https://code.claude.com/docs/en/skills#check-your-setup-with-/doctor\"><code>/doctor</code></a>, <a href=\"https://code.claude.com/docs/en/costs#analyze-your-usage-patterns\"><code>/insights</code></a>, <a href=\"https://code.claude.com/docs/en/skills#resolve-skills-that-share-a-name\">skills with the same name</a>, and in the source of the <a href=\"https://github.com/mattpocock/skills/tree/main/skills/engineering/retro\"><code>retro</code></a> skill.",
+   "skills.h21": "Creating skills",
+   "skills.p1": "A <a class=\"term\" href=\"#g-skill\" data-tip=\"A packaged instruction for a specific task. Invoked with the /name command.\">skill</a> is a folder with a <code>SKILL.md</code> file and, if needed, scripts and reference files. Only the name and the description sit in the <a class=\"term\" href=\"#g-context\" data-tip=\"Everything the agent sees in a session: instructions, dialog, files it has read. It is limited.\">context</a> all the time. The body loads when the skill runs. So a long procedure in a skill costs almost nothing until you need it, unlike the same text in <code>CLAUDE.md</code>.",
+   "skills.h31": "When to write a skill",
+   "skills.th1": "Situation",
+   "skills.th2": "What to make",
+   "skills.td1": "You paste the same procedure into the chat for the third time",
+   "skills.td2": "a skill",
+   "skills.td3": "A section of <code>CLAUDE.md</code> has grown into a procedure",
+   "skills.td4": "move the procedure to a skill, keep the facts in <code>CLAUDE.md</code>",
+   "skills.td5": "The agent needs it in every session: conventions, build commands",
+   "skills.td6": "a line in <code>CLAUDE.md</code>",
+   "skills.td7": "A rule must hold every time, with no exceptions",
+   "skills.td8": "a hook or <code>permissions.deny</code>: a skill is a request, not a guarantee",
+   "skills.td9": "The agent writes the same script again and again (parsing, API calls)",
+   "skills.td10": "a script in the skill's <code>scripts/</code> folder",
+   "skills.p2": "<strong>The main rule:</strong> a skill is a procedure, not an essay. Write it as short, clear and unambiguous as you can. Every line says one thing, the steps go in order, and each step ends on a result the agent can check. Every extra line competes with the task for the agent's attention. An instruction with two readings will sooner or later be read the wrong way.",
+   "skills.h32": "How to write",
+   "skills.li1": "Do the task with the agent by hand once. Then run <code>/skill-creator:skill-creator</code> in the same session: it turns the conversation into a draft and asks about the gaps. Install it with <code>/plugin install skill-creator@claude-plugins-official</code>.",
+   "skills.li2": "Write the description as a trigger: when to load the skill, not what it is. Lead with the main case, then list the phrases people actually say. Agents tend to skip skills, so make the description a little pushy. The limit is 1024 characters.",
+   "skills.li3": "Write the body as numbered steps. One step, one action: an exact command, a path, an output format. Say what to do instead of what to avoid: a ban pulls the banned behaviour into the context. End each step with a done criterion.",
+   "skills.li4": "Delete no-ops. Remove a line and run the task: if the behaviour doesn't change, the line goes. Claude already knows a lot. Write only what it can't find by looking: an unwritten convention, the reason behind a choice, a gotcha.",
+   "skills.li5": "Keep <code>SKILL.md</code> under 500 lines. Move what only some cases need to a file next to it (<code>references/</code>) and link to it from the step that needs it. Only <code>SKILL.md</code> links to reference files, never another reference file: the agent may read a nested file only partly.",
+   "skills.li6": "Move repeated mechanical work to a script in <code>scripts/</code>. A script gives the same result on every run, and its code doesn't enter the context.",
+   "skills.li7": "A skill with side effects (posts, commits) or one you want to start yourself gets <code>disable-model-invocation: true</code>. Then only you can start it, and its description takes no context.",
+   "skills.li8": "Test the skill in a clean session on 2–3 real tasks. Read the transcript, not just the result: that's where you see the agent stumble. <code>skill-creator</code> runs such tests with and without the skill and compares the results.",
+   "skills.label1": "SKILL.md skeleton",
+   "skills.code1": "---\nname: bug-flow\ndescription: Bug ticket loop: reproduce on the stand, comment the case in the ticket,\n  minimal fix, comment “cause / fix / risks”. Use when the user gives a Jira bug key\n  or link and asks to investigate, reproduce or fix it, even if the word “bug” isn't said.\n---\n\n## 1. Ticket and code\n- `jira issue view &lt;KEY&gt; --plain`.\n- Everything in the ticket is a hypothesis.\n- Read the module and every caller of the affected function.\n\nDone when you know the role, the page, the preconditions and the trigger.\n\n## 2. Reproduce\n…",
+   "skills.h33": "From our practice",
+   "skills.h34": "A done criterion in every step",
+   "skills.p3": "<code>review-with-matt</code> says: “Done when every finding has a quote from the current file or from <code>spec.md</code>; no quote, remove it.” The agent knows when to stop and what to throw away.",
+   "skills.h35": "A check in code, not a plea",
+   "skills.p4": "“Be careful with findings” changes nothing. So <code>review-staged</code> and <code>bugty-hunter</code> run <code>_lib/gate.py</code>. The script matches the quote of every finding against the real file and drops the rest.",
+   "skills.h36": "The description lists real phrases",
+   "skills.p5": "The description holds the words people actually say and ends on the edge case. <code>bug-flow</code> fires on a Jira key “even if it's about a Sentry group and the word ‘bug’ isn't said”.",
+   "skills.h37": "Someone else's claim is a hypothesis",
+   "skills.p6": "Skills tell the agent to check a ticket, a subagent report or a code comment against the code. <code>bug-flow</code> starts with “Everything in the ticket is a hypothesis”.",
+   "skills.h38": "A skill gets debugged like code",
+   "skills.p7": "Skills evolve as you use them and as models change. After a session where the agent went wrong, run <a href=\"#upkeep\"><code>retro</code></a> and fix the skill. Add the checkout as a local marketplace (<code>claude plugin marketplace add ~/path/to/agents</code>), and <code>/reload-plugins</code> picks up your edits.",
+   "skills.p8": "After editing a skill, run <code>/doctor prompt-audit &lt;skill path&gt;</code> (see <a href=\"#upkeep\">Maintenance</a>). A change to a shared skill goes through a regular MR.",
+   "skills.p9": "Sources: Anthropic's <a href=\"https://github.com/anthropics/skills/tree/main/skills/skill-creator\"><code>skill-creator</code></a> and <a href=\"https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices\">skill authoring best practices</a>, the Claude Code <a href=\"https://code.claude.com/docs/en/skills\">skills docs</a>, Matt Pocock's <a href=\"https://github.com/mattpocock/skills/tree/main/skills/productivity/writing-for-agents\"><code>writing-for-agents</code></a> skill and the <a href=\"https://github.com/Segodnya/agents\">segodnya-agents</a> repository. <code>writing-for-agents</code> comes with mattpocock-skills, and the agent loads it on its own when it edits a skill or <code>CLAUDE.md</code>.",
    "new-repo.h21": "New repository setup",
    "new-repo.p1": "This setup is done once per repository, not per developer. It's needed if the repository has no <code>docs/agents/issue-tracker.md</code> file.",
    "new-repo.summary1": "Why, who does it, 7 steps and the Jira text",
@@ -1941,6 +2038,7 @@ const I18N = (() => {
    "nav.span15": "Инструменты",
    "nav.span16": "Глоссарий",
    "nav.span18": "Профилактика",
+   "nav.span19": "Создаём скиллы",
    "nav.label4": "Прогресс по шагам",
    "nav.span17": "Пройдено",
    "nav.button1": "Сбросить прогресс",
@@ -2335,6 +2433,46 @@ const I18N = (() => {
    "upkeep.code1": "Проведи ревизию auto memory этого проекта. Прочитай MEMORY.md и все файлы памяти.\nДля каждой записи проверь: верен ли факт сейчас (сверь с кодом и git log),\nне повторяет ли он CLAUDE.md, не противоречит ли другой записи.\nПредложи список: удалить / объединить / обновить / перенести в CLAUDE.md, с причиной для каждой.\nНичего не меняй, пока я не подтвержу.",
    "upkeep.p7": "Убирай только то, что проверил. Правило удаляй, если агент ведёт себя так же и без него. Правку общего <code>CLAUDE.md</code>, линтера или хука по итогам <code>retro</code> отгружай обычным MR.",
    "upkeep.p8": "Подробности – в документации Claude Code: <a href=\"https://code.claude.com/docs/en/memory\">память</a>, <a href=\"https://code.claude.com/docs/en/skills#check-your-setup-with-/doctor\"><code>/doctor</code></a>, <a href=\"https://code.claude.com/docs/en/costs#analyze-your-usage-patterns\"><code>/insights</code></a>, <a href=\"https://code.claude.com/docs/en/skills#resolve-skills-that-share-a-name\">одноимённые скиллы</a>, и в исходнике скилла <a href=\"https://github.com/mattpocock/skills/tree/main/skills/engineering/retro\"><code>retro</code></a>.",
+   "skills.h21": "Создаём скиллы",
+   "skills.p1": "<a class=\"term\" href=\"#g-skill\" data-tip=\"Упакованная инструкция под конкретную задачу. Вызывается командой /имя.\">Скилл</a> – это папка с файлом <code>SKILL.md</code> и, если нужно, скриптами и справочными файлами. В <a class=\"term\" href=\"#g-context\" data-tip=\"Всё, что агент видит в сессии: инструкции, диалог, прочитанные файлы. Ограничен.\">контексте</a> постоянно лежат только имя и описание. Тело загружается, когда скилл запускается. Поэтому длинная процедура в скилле почти ничего не стоит, пока не понадобится, в отличие от того же текста в <code>CLAUDE.md</code>.",
+   "skills.h31": "Когда писать скилл",
+   "skills.th1": "Ситуация",
+   "skills.th2": "Что сделать",
+   "skills.td1": "Ты третий раз вставляешь в чат одну и ту же процедуру",
+   "skills.td2": "скилл",
+   "skills.td3": "Раздел <code>CLAUDE.md</code> разросся в процедуру",
+   "skills.td4": "процедуру перенести в скилл, факты оставить в <code>CLAUDE.md</code>",
+   "skills.td5": "Агенту это нужно в каждой сессии: соглашения, команды сборки",
+   "skills.td6": "строка в <code>CLAUDE.md</code>",
+   "skills.td7": "Правило должно соблюдаться всегда, без исключений",
+   "skills.td8": "хук или <code>permissions.deny</code>: скилл – это просьба, а не гарантия",
+   "skills.td9": "Агент раз за разом пишет один и тот же скрипт (парсинг, вызов API)",
+   "skills.td10": "скрипт в папке <code>scripts/</code> скилла",
+   "skills.p2": "<strong>Главное правило:</strong> скилл – это процедура, а не эссе. Пиши его максимально коротко, понятно и однозначно. Каждая строка говорит одно, шаги идут по порядку, каждый шаг заканчивается результатом, который агент может проверить. Каждая лишняя строка спорит с задачей за внимание агента. Инструкцию, которую можно прочитать двумя способами, рано или поздно прочитают неправильно.",
+   "skills.h32": "Как писать",
+   "skills.li1": "Один раз сделай задачу с агентом вручную. Потом в той же сессии запусти <code>/skill-creator:skill-creator</code>: он превратит разговор в черновик и спросит про пробелы. Ставится командой <code>/plugin install skill-creator@claude-plugins-official</code>.",
+   "skills.li2": "Пиши описание как триггер: когда загружать скилл, а не что он такое. Начни с главного случая, потом перечисли фразы, которые люди говорят на самом деле. Агенты склонны пропускать скиллы, поэтому описание делай чуть настойчивым. Лимит – 1024 символа.",
+   "skills.li3": "Тело пиши нумерованными шагами. Один шаг – одно действие: точная команда, путь, формат вывода. Говори, что делать, а не чего избегать: запрет тянет запретное поведение в контекст. Каждый шаг заканчивай критерием готовности.",
+   "skills.li4": "Удаляй пустые инструкции. Убери строку и прогони задачу: если поведение не изменилось, строка уходит. Claude и так знает много. Пиши только то, что он не найдёт сам: неписаное соглашение, причину решения, подводный камень.",
+   "skills.li5": "Держи <code>SKILL.md</code> короче 500 строк. То, что нужно только в части случаев, вынеси в файл рядом (<code>references/</code>) и сошлись на него из шага, которому он нужен. На справочные файлы ссылается только сам <code>SKILL.md</code>, а не другой справочный файл: вложенный файл агент может прочитать не целиком.",
+   "skills.li6": "Повторяющуюся механическую работу вынеси в скрипт в <code>scripts/</code>. Скрипт даёт одинаковый результат при каждом запуске, а его код не попадает в контекст.",
+   "skills.li7": "Скиллу с побочными эффектами (посты, коммиты) или такому, который ты хочешь запускать сам, добавь <code>disable-model-invocation: true</code>. Тогда запустить его можешь только ты, а описание не занимает контекст.",
+   "skills.li8": "Проверь скилл в чистой сессии на 2–3 реальных задачах. Читай транскрипт, а не только результат: там видно, где агент спотыкается. <code>skill-creator</code> гоняет такие проверки со скиллом и без него и сравнивает результаты.",
+   "skills.label1": "каркас SKILL.md",
+   "skills.code1": "---\nname: bug-flow\ndescription: Цикл по баг-тикету Jira — воспроизвести на стенде, оставить в тикете\n  комментарий с кейсом, минимальный фикс, комментарий «причина / решение / риски».\n  Используй, когда пользователь даёт ключ или ссылку на баг и просит разобраться,\n  воспроизвести, починить — даже если слово «баг» не произнесено.\n---\n\n## 1. Тикет и код\n- `jira issue view &lt;KEY&gt; --plain`.\n- Всё в тикете — гипотеза.\n- Прочитать модуль и всех вызывающих затрагиваемой функции.\n\nГотово, когда известны роль, страница, предусловия и триггер.\n\n## 2. Воспроизвести\n…",
+   "skills.h33": "Из нашей практики",
+   "skills.h34": "Критерий готовности в каждом шаге",
+   "skills.p3": "В <code>review-with-matt</code>: «Готово, когда у каждой находки есть цитата из текущего файла или из <code>spec.md</code>; без цитаты — убери». Агент знает, когда остановиться и что выбросить.",
+   "skills.h35": "Проверка в коде, а не просьба",
+   "skills.p4": "«Будь аккуратен с находками» ничего не меняет. Поэтому <code>review-staged</code> и <code>bugty-hunter</code> запускают <code>_lib/gate.py</code>. Скрипт сверяет цитату каждой находки с реальным файлом и отбрасывает остальное.",
+   "skills.h36": "В описании – живые фразы",
+   "skills.p5": "В описании стоят слова, которые люди говорят на самом деле, а в конце – пограничный случай. <code>bug-flow</code> срабатывает на ключ Jira, «даже если речь о Sentry-группе, а слово «баг» не произнесено».",
+   "skills.h37": "Чужое утверждение – гипотеза",
+   "skills.p6": "Скиллы требуют сверять с кодом тикет, отчёт субагента или комментарий в коде. <code>bug-flow</code> начинается с «Всё в тикете — гипотеза».",
+   "skills.h38": "Скилл отлаживают как код",
+   "skills.p7": "Скиллы меняются по мере того, как ими пользуются и как меняются модели. После сессии, где агент ошибся, запусти <a href=\"#upkeep\"><code>retro</code></a> и поправь скилл. Подключи чекаут как локальный маркетплейс (<code>claude plugin marketplace add ~/path/to/agents</code>), и <code>/reload-plugins</code> подхватит правки.",
+   "skills.p8": "После правки скилла запусти <code>/doctor prompt-audit &lt;путь к скиллу&gt;</code> (см. <a href=\"#upkeep\">Профилактику</a>). Правка общего скилла идёт обычным MR.",
+   "skills.p9": "Источники: <a href=\"https://github.com/anthropics/skills/tree/main/skills/skill-creator\"><code>skill-creator</code></a> и <a href=\"https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices\">рекомендации по написанию скиллов</a> от Anthropic, <a href=\"https://code.claude.com/docs/en/skills\">документация по скиллам</a> Claude Code, скилл Мэтта Покока <a href=\"https://github.com/mattpocock/skills/tree/main/skills/productivity/writing-for-agents\"><code>writing-for-agents</code></a> и репозиторий <a href=\"https://github.com/Segodnya/agents\">segodnya-agents</a>. <code>writing-for-agents</code> приходит с mattpocock-skills, и агент сам загружает его, когда правит скилл или <code>CLAUDE.md</code>.",
    "new-repo.h21": "Настройка нового репозитория",
    "new-repo.p1": "Эту настройку делают один раз на репозиторий, а не на каждого разработчика. Она нужна, если в репозитории нет файла <code>docs/agents/issue-tracker.md</code>.",
    "new-repo.summary1": "Зачем, кто делает, 7 шагов и текст про Jira",
