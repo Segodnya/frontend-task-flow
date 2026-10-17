@@ -338,6 +338,7 @@ main > section { max-width: 820px; margin: 0 auto var(--gap); }
 .badge-current { background: var(--signal-soft); color: var(--signal-hover); }
 .badge-warning { background: var(--warn-soft); color: var(--warn); }
 .badge-danger { background: var(--err-soft); color: var(--err); }
+.toc .badge { margin-left: auto; padding: 2px 8px; font-size: 12px; background: var(--signal); color: var(--on-fill); }
 
 /* ---------- Section headers ---------- */
 .section-head { margin-bottom: 24px; }
@@ -580,6 +581,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
     <ul data-i18n-attr="aria-label:nav.label3" aria-label="Reference">
       <li><a href="#slicing"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="5.5" cy="5.5" r="2"/><circle cx="5.5" cy="14.5" r="2"/><path d="M7.2 6.6 16.5 15M7.2 13.4 16.5 5"/></svg><span data-i18n="nav.span11">Slicing a branch into MRs</span></a></li>
       <li><a href="#context"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M10 3 2.5 7 10 11l7.5-4zM2.5 10.5l7.5 4 7.5-4M2.5 14l7.5 4 7.5-4"/></svg><span data-i18n="nav.span12">Protecting the context</span></a></li>
+      <li><a href="#upkeep"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M16.5 3.5 11 9M8.5 8.5l3 3-.8 1.6a6 6 0 0 1-3 2.9L3.5 17.5l1.5-4.2a6 6 0 0 1 2.9-3zM6.5 12.5l1 1"/></svg><span data-i18n="nav.span18">Maintenance</span><span class="badge">New</span></a></li>
       <li><a href="#new-repo"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2.5 5.5a1 1 0 0 1 1-1h4l1.5 2h7.5a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM10 9v5M7.5 11.5h5"/></svg><span data-i18n="nav.span13">New repository</span></a></li>
       <li><a href="#compare"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M10 3v14M6.5 17h7M3 6.5h14M5 6.5 3 11.5a2 2 0 0 0 4 0zM15 6.5l-2 5a2 2 0 0 0 4 0z"/></svg><span data-i18n="nav.span14">Why Matt's skills</span></a></li>
       <li><a href="#tools"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12.5 3a4 4 0 0 0-3.8 5.2l-5.4 5.4a1.5 1.5 0 0 0 2.1 2.1l5.4-5.4A4 4 0 0 0 16.4 6L14 8.4l-1.9-.5-.5-1.9L14 3.3a4 4 0 0 0-1.5-.3z"/></svg><span data-i18n="nav.span15">Tools</span></a></li>
@@ -1176,6 +1178,40 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
   <p data-i18n="context.p7">If you want to go deeper, read Kirill Mokevnin's book <a href="https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/SUMMARY.md">Agentic Coding Design Patterns</a>, the “Working with context” and “Verification” sections, and the Claude Code <a href="https://code.claude.com/docs/en/best-practices">Best practices</a>.</p>
 </section>
 
+<!-- ================= UPKEEP ================= -->
+<section id="upkeep">
+  <div class="section-head"><h2 data-i18n="upkeep.h21">Maintenance</h2></div>
+  <p data-i18n="upkeep.p1">Junk piles up between sessions: outdated rules in <code>CLAUDE.md</code>, stale memories, MCP servers and plugins nobody uses. All of it loads into the <a class="term" href="#g-context" data-tip="Everything the agent sees in a session: instructions, dialog, files it has read. It is limited.">context</a> and pulls the agent the wrong way. Clean up from time to time. Six tools help with that:</p>
+  <div class="cards">
+    <div class="card"><h3 data-i18n="upkeep.h31">Session retro: <code>/mattpocock-skills:retro</code></h3><p data-i18n="upkeep.p2">The agent reads the session log and proposes changes to the environment, not to the code: a navigation pointer, a linter rule or a hook instead of a rule in <code>CLAUDE.md</code>, a new rule for the reviewer, removal of instructions that change nothing. Findings come sorted by severity. Only you can start the skill. Run it after a session where the agent went in circles or made a mistake a check could catch. The skill ships in mattpocock-skills 1.3.1 and later.</p></div>
+    <div class="card"><h3 data-i18n="upkeep.h32">Setup checkup: <code>/doctor</code></h3><p data-i18n="upkeep.p3">The alias is <code>/checkup</code>. Claude checks the installation (duplicates, <code>PATH</code>, broken settings, a new version), unused skills, MCP servers and plugins against their context cost, slow hooks, and <code>CLAUDE.md</code> content the agent can derive from the code. Claude applies fixes only after you confirm. <code>claude doctor</code> in the terminal gives read-only diagnostics without a session.</p></div>
+    <div class="card"><h3 data-i18n="upkeep.h33">Instruction audit: <code>/doctor prompt-audit</code></h3><p data-i18n="upkeep.p4">Claude looks for instructions written for older models, links to files and commands that no longer exist, and files that contradict each other. The audit covers <code>CLAUDE.md</code>, <code>AGENTS.md</code>, rules, skills, subagents and output styles in <code>.claude/</code> and <code>~/.claude/</code>. You get a report with proposed edits. Files change only when you ask. To audit one skill, pass its path: <code>/doctor prompt-audit .claude/skills/deploy</code>. Requires Claude Code v2.1.283 or later.</p></div>
+    <div class="card"><h3 data-i18n="upkeep.h34">Usage report: <code>/insights</code></h3><p data-i18n="upkeep.p5">Claude analyzes your recent sessions on this machine and writes an HTML report: what you work on, where things go wrong (misunderstood requests, buggy code), which features to try. One run covers up to 200 new sessions and spends tokens from your plan. The report stays in <code>~/.claude/usage-data/</code> for 30 days. A friction point from the report is a good candidate for <code>retro</code>.</p></div>
+    <div class="card"><h3 data-i18n="upkeep.h35">Memory review: <code>/memory</code></h3><p data-i18n="upkeep.p6">Claude saves notes for itself in <code>~/.claude/projects/&lt;project&gt;/memory/</code>. The first 200 lines of the <code>MEMORY.md</code> index load into every session. Memory files never expire: a finished task or a dropped decision stays there until someone deletes it. <code>/memory</code> opens the folder and turns auto memory on or off. <code>/context</code> shows which files loaded at launch.</p></div>
+    <div class="card"><h3 data-i18n="upkeep.h38">Skill duplicates: <code>/skills</code></h3><p data-i18n="upkeep.p9">The same skill often lands twice: as a plugin and as a standalone copy in <code>~/.claude/skills/</code>, for example after <code>npx skills add</code>. A plugin skill has a prefix (<code>/mattpocock-skills:tdd</code>), so both copies load. Their descriptions take double space in the skill listing, and the listing has a budget: on overflow Claude Code drops the descriptions of rarely used skills. The copies update separately and drift apart. A standalone <code>code-review</code> also replaces the bundled <code>/code-review</code>. <code>/skills</code> shows where each skill comes from, <code>/skill-doctor</code> shows its context cost and how often it runs. Keep one copy: delete the standalone one or turn the plugin off in <code>/plugin</code>.</p></div>
+  </div>
+  <h3 data-i18n="upkeep.h36">How often</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th data-i18n="upkeep.th1">When</th><th data-i18n="upkeep.th2">What to run</th></tr></thead>
+    <tbody>
+      <tr><td data-i18n="upkeep.td1">After a hard session</td><td><code>/mattpocock-skills:retro</code></td></tr>
+      <tr><td data-i18n="upkeep.td2">Every two weeks</td><td data-i18n="upkeep.td3"><code>/insights</code>, then <code>retro</code> on the session with the most friction</td></tr>
+      <tr><td data-i18n="upkeep.td4">After a Claude Code or plugin update, or once a month</td><td><code>/doctor</code></td></tr>
+      <tr><td data-i18n="upkeep.td5">After editing <code>CLAUDE.md</code> or skills</td><td><code>/doctor prompt-audit</code></td></tr>
+      <tr><td data-i18n="upkeep.td8">After installing a plugin or a skill set</td><td><code>/skills</code>, <code>/skill-doctor</code></td></tr>
+      <tr><td data-i18n="upkeep.td6">Once a month</td><td data-i18n="upkeep.td7">memory review with the prompt below</td></tr>
+    </tbody>
+  </table></div>
+  <h3 data-i18n="upkeep.h37">Memory review prompt</h3>
+<pre data-i18n-attr="data-label:upkeep.label1" data-label="memory review prompt"><code data-i18n="upkeep.code1" class="language-prompt">Review this project's auto memory. Read MEMORY.md and every memory file.
+For each memory check: is the fact still true (verify against the code and git log),
+does it repeat CLAUDE.md, does it contradict another memory.
+Propose a list: delete / merge / update / move to CLAUDE.md, with a reason for each.
+Change nothing until I confirm.</code></pre>
+  <div class="callout warn"><div><p data-i18n="upkeep.p7">Clean up only what you checked. Remove a rule when the agent behaves the same without it. A change to the shared <code>CLAUDE.md</code>, a linter or a hook after <code>retro</code> goes through a regular MR.</p></div></div>
+  <p data-i18n="upkeep.p8">Details are in the Claude Code docs: <a href="https://code.claude.com/docs/en/memory">memory</a>, <a href="https://code.claude.com/docs/en/skills#check-your-setup-with-/doctor"><code>/doctor</code></a>, <a href="https://code.claude.com/docs/en/costs#analyze-your-usage-patterns"><code>/insights</code></a>, <a href="https://code.claude.com/docs/en/skills#resolve-skills-that-share-a-name">skills with the same name</a>, and in the source of the <a href="https://github.com/mattpocock/skills/tree/main/skills/engineering/retro"><code>retro</code></a> skill.</p>
+</section>
+
 <!-- ================= NEW REPO ================= -->
 <section id="new-repo">
   <div class="section-head"><h2 data-i18n="new-repo.h21">New repository setup</h2></div>
@@ -1347,6 +1383,7 @@ const I18N = (() => {
    "nav.span14": "Why Matt's skills",
    "nav.span15": "Tools",
    "nav.span16": "Glossary",
+   "nav.span18": "Maintenance",
    "nav.label4": "Progress through the steps",
    "nav.span17": "Completed",
    "nav.button1": "Reset progress",
@@ -1699,6 +1736,36 @@ const I18N = (() => {
    "context.td9": "Spec and tickets",
    "context.td10": "by the ticket key in the session's first message",
    "context.p7": "If you want to go deeper, read Kirill Mokevnin's book <a href=\"https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/SUMMARY.md\">Agentic Coding Design Patterns</a>, the “Working with context” and “Verification” sections, and the Claude Code <a href=\"https://code.claude.com/docs/en/best-practices\">Best practices</a>.",
+   "upkeep.h21": "Maintenance",
+   "upkeep.p1": "Junk piles up between sessions: outdated rules in <code>CLAUDE.md</code>, stale memories, MCP servers and plugins nobody uses. All of it loads into the <a class=\"term\" href=\"#g-context\" data-tip=\"Everything the agent sees in a session: instructions, dialog, files it has read. It is limited.\">context</a> and pulls the agent the wrong way. Clean up from time to time. Six tools help with that:",
+   "upkeep.h31": "Session retro: <code>/mattpocock-skills:retro</code>",
+   "upkeep.p2": "The agent reads the session log and proposes changes to the environment, not to the code: a navigation pointer, a linter rule or a hook instead of a rule in <code>CLAUDE.md</code>, a new rule for the reviewer, removal of instructions that change nothing. Findings come sorted by severity. Only you can start the skill. Run it after a session where the agent went in circles or made a mistake a check could catch. The skill ships in mattpocock-skills 1.3.1 and later.",
+   "upkeep.h32": "Setup checkup: <code>/doctor</code>",
+   "upkeep.p3": "The alias is <code>/checkup</code>. Claude checks the installation (duplicates, <code>PATH</code>, broken settings, a new version), unused skills, MCP servers and plugins against their context cost, slow hooks, and <code>CLAUDE.md</code> content the agent can derive from the code. Claude applies fixes only after you confirm. <code>claude doctor</code> in the terminal gives read-only diagnostics without a session.",
+   "upkeep.h33": "Instruction audit: <code>/doctor prompt-audit</code>",
+   "upkeep.p4": "Claude looks for instructions written for older models, links to files and commands that no longer exist, and files that contradict each other. The audit covers <code>CLAUDE.md</code>, <code>AGENTS.md</code>, rules, skills, subagents and output styles in <code>.claude/</code> and <code>~/.claude/</code>. You get a report with proposed edits. Files change only when you ask. To audit one skill, pass its path: <code>/doctor prompt-audit .claude/skills/deploy</code>. Requires Claude Code v2.1.283 or later.",
+   "upkeep.h34": "Usage report: <code>/insights</code>",
+   "upkeep.p5": "Claude analyzes your recent sessions on this machine and writes an HTML report: what you work on, where things go wrong (misunderstood requests, buggy code), which features to try. One run covers up to 200 new sessions and spends tokens from your plan. The report stays in <code>~/.claude/usage-data/</code> for 30 days. A friction point from the report is a good candidate for <code>retro</code>.",
+   "upkeep.h35": "Memory review: <code>/memory</code>",
+   "upkeep.p6": "Claude saves notes for itself in <code>~/.claude/projects/&lt;project&gt;/memory/</code>. The first 200 lines of the <code>MEMORY.md</code> index load into every session. Memory files never expire: a finished task or a dropped decision stays there until someone deletes it. <code>/memory</code> opens the folder and turns auto memory on or off. <code>/context</code> shows which files loaded at launch.",
+   "upkeep.h38": "Skill duplicates: <code>/skills</code>",
+   "upkeep.p9": "The same skill often lands twice: as a plugin and as a standalone copy in <code>~/.claude/skills/</code>, for example after <code>npx skills add</code>. A plugin skill has a prefix (<code>/mattpocock-skills:tdd</code>), so both copies load. Their descriptions take double space in the skill listing, and the listing has a budget: on overflow Claude Code drops the descriptions of rarely used skills. The copies update separately and drift apart. A standalone <code>code-review</code> also replaces the bundled <code>/code-review</code>. <code>/skills</code> shows where each skill comes from, <code>/skill-doctor</code> shows its context cost and how often it runs. Keep one copy: delete the standalone one or turn the plugin off in <code>/plugin</code>.",
+   "upkeep.h36": "How often",
+   "upkeep.th1": "When",
+   "upkeep.th2": "What to run",
+   "upkeep.td1": "After a hard session",
+   "upkeep.td2": "Every two weeks",
+   "upkeep.td3": "<code>/insights</code>, then <code>retro</code> on the session with the most friction",
+   "upkeep.td4": "After a Claude Code or plugin update, or once a month",
+   "upkeep.td5": "After editing <code>CLAUDE.md</code> or skills",
+   "upkeep.td6": "Once a month",
+   "upkeep.td7": "memory review with the prompt below",
+   "upkeep.td8": "After installing a plugin or a skill set",
+   "upkeep.h37": "Memory review prompt",
+   "upkeep.label1": "memory review prompt",
+   "upkeep.code1": "Review this project's auto memory. Read MEMORY.md and every memory file.\nFor each memory check: is the fact still true (verify against the code and git log),\ndoes it repeat CLAUDE.md, does it contradict another memory.\nPropose a list: delete / merge / update / move to CLAUDE.md, with a reason for each.\nChange nothing until I confirm.",
+   "upkeep.p7": "Clean up only what you checked. Remove a rule when the agent behaves the same without it. A change to the shared <code>CLAUDE.md</code>, a linter or a hook after <code>retro</code> goes through a regular MR.",
+   "upkeep.p8": "Details are in the Claude Code docs: <a href=\"https://code.claude.com/docs/en/memory\">memory</a>, <a href=\"https://code.claude.com/docs/en/skills#check-your-setup-with-/doctor\"><code>/doctor</code></a>, <a href=\"https://code.claude.com/docs/en/costs#analyze-your-usage-patterns\"><code>/insights</code></a>, <a href=\"https://code.claude.com/docs/en/skills#resolve-skills-that-share-a-name\">skills with the same name</a>, and in the source of the <a href=\"https://github.com/mattpocock/skills/tree/main/skills/engineering/retro\"><code>retro</code></a> skill.",
    "new-repo.h21": "New repository setup",
    "new-repo.p1": "This setup is done once per repository, not per developer. It's needed if the repository has no <code>docs/agents/issue-tracker.md</code> file.",
    "new-repo.summary1": "Why, who does it, 7 steps and the Jira text",
@@ -1844,6 +1911,7 @@ const I18N = (() => {
    "nav.span14": "Почему скиллы Мэтта",
    "nav.span15": "Инструменты",
    "nav.span16": "Глоссарий",
+   "nav.span18": "Профилактика",
    "nav.label4": "Прогресс по шагам",
    "nav.span17": "Пройдено",
    "nav.button1": "Сбросить прогресс",
@@ -2196,6 +2264,36 @@ const I18N = (() => {
    "context.td9": "Спека и тикеты",
    "context.td10": "ключом тикета в первом сообщении сессии",
    "context.p7": "Если хочешь глубже, почитай книгу Кирилла Мокевнина <a href=\"https://github.com/mokevnin/agentic-coding-design-patterns/blob/main/book/ru/SUMMARY.md\">Agentic Coding Design Patterns</a>, разделы «Работа с контекстом» и «Проверка», и <a href=\"https://code.claude.com/docs/en/best-practices\">Best practices</a> Claude Code.",
+   "upkeep.h21": "Профилактика",
+   "upkeep.p1": "Между сессиями копится мусор: устаревшие правила в <code>CLAUDE.md</code>, неактуальные воспоминания, MCP-серверы и плагины, которыми никто не пользуется. Всё это грузится в <a class=\"term\" href=\"#g-context\" data-tip=\"Всё, что агент видит в сессии: инструкции, диалог, прочитанные файлы. Ограничен.\">контекст</a> и сбивает агента. Время от времени проводи уборку. В этом помогают шесть инструментов:",
+   "upkeep.h31": "Ретро сессии: <code>/mattpocock-skills:retro</code>",
+   "upkeep.p2": "Агент читает лог сессии и предлагает правки окружения, а не кода: указатель для навигации, правило линтера или хук вместо правила в <code>CLAUDE.md</code>, новое правило для ревьюера, удаление инструкций, которые ничего не меняют. Находки идут по убыванию важности. Запустить скилл можешь только ты. Запускай после сессии, где агент ходил по кругу или ошибся там, где ошибку поймала бы проверка. Скилл есть в mattpocock-skills с версии 1.3.1.",
+   "upkeep.h32": "Проверка установки: <code>/doctor</code>",
+   "upkeep.p3": "Алиас – <code>/checkup</code>. Claude проверяет установку (дубли, <code>PATH</code>, битые настройки, новую версию), неиспользуемые скиллы, MCP-серверы и плагины против их стоимости в контексте, медленные хуки и то, что в <code>CLAUDE.md</code> агент может вывести из кода сам. Правки Claude применяет только после твоего подтверждения. <code>claude doctor</code> в терминале даёт диагностику только на чтение, без сессии.",
+   "upkeep.h33": "Аудит инструкций: <code>/doctor prompt-audit</code>",
+   "upkeep.p4": "Claude ищет инструкции, написанные для старых моделей, ссылки на файлы и команды, которых больше нет, и файлы, которые противоречат друг другу. Аудит охватывает <code>CLAUDE.md</code>, <code>AGENTS.md</code>, правила, скиллы, субагентов и стили вывода в <code>.claude/</code> и <code>~/.claude/</code>. Ты получаешь отчёт с предложенными правками. Файлы меняются, только когда ты попросишь. Чтобы проверить один скилл, передай путь: <code>/doctor prompt-audit .claude/skills/deploy</code>. Нужен Claude Code v2.1.283 или новее.",
+   "upkeep.h34": "Отчёт об использовании: <code>/insights</code>",
+   "upkeep.p5": "Claude разбирает твои недавние сессии на этой машине и пишет HTML-отчёт: над чем ты работаешь, где всё идёт не так (непонятые запросы, код с багами), какие возможности стоит попробовать. Один запуск охватывает до 200 новых сессий и тратит токены из твоего плана. Отчёт хранится в <code>~/.claude/usage-data/</code> 30 дней. Трение из отчёта – хороший кандидат для <code>retro</code>.",
+   "upkeep.h35": "Ревизия памяти: <code>/memory</code>",
+   "upkeep.p6": "Claude сохраняет заметки для себя в <code>~/.claude/projects/&lt;project&gt;/memory/</code>. Первые 200 строк индекса <code>MEMORY.md</code> грузятся в каждую сессию. Файлы памяти не устаревают сами: законченная задача или отменённое решение лежит там, пока кто-то его не удалит. <code>/memory</code> открывает папку и включает или выключает auto memory. <code>/context</code> показывает, какие файлы загрузились при старте.",
+   "upkeep.h38": "Дубли скиллов: <code>/skills</code>",
+   "upkeep.p9": "Один и тот же скилл часто стоит дважды: плагином и отдельной копией в <code>~/.claude/skills/</code>, например после <code>npx skills add</code>. У скилла из плагина есть префикс (<code>/mattpocock-skills:tdd</code>), поэтому грузятся обе копии. Их описания занимают двойное место в списке скиллов, а у списка есть бюджет: при переполнении Claude Code выкидывает описания редких скиллов. Копии обновляются отдельно и расходятся по версиям. Отдельный <code>code-review</code> к тому же подменяет встроенный <code>/code-review</code>. <code>/skills</code> показывает, откуда пришёл каждый скилл, <code>/skill-doctor</code> – сколько он стоит в контексте и как часто запускается. Оставь одну копию: удали отдельную или выключи плагин в <code>/plugin</code>.",
+   "upkeep.h36": "Как часто",
+   "upkeep.th1": "Когда",
+   "upkeep.th2": "Что запустить",
+   "upkeep.td1": "После тяжёлой сессии",
+   "upkeep.td2": "Раз в две недели",
+   "upkeep.td3": "<code>/insights</code>, затем <code>retro</code> по сессии с наибольшим трением",
+   "upkeep.td4": "После обновления Claude Code или плагинов, или раз в месяц",
+   "upkeep.td5": "После правки <code>CLAUDE.md</code> или скиллов",
+   "upkeep.td6": "Раз в месяц",
+   "upkeep.td7": "ревизия памяти промптом ниже",
+   "upkeep.td8": "После установки плагина или набора скиллов",
+   "upkeep.h37": "Промпт для ревизии памяти",
+   "upkeep.label1": "промпт для ревизии памяти",
+   "upkeep.code1": "Проведи ревизию auto memory этого проекта. Прочитай MEMORY.md и все файлы памяти.\nДля каждой записи проверь: верен ли факт сейчас (сверь с кодом и git log),\nне повторяет ли он CLAUDE.md, не противоречит ли другой записи.\nПредложи список: удалить / объединить / обновить / перенести в CLAUDE.md, с причиной для каждой.\nНичего не меняй, пока я не подтвержу.",
+   "upkeep.p7": "Убирай только то, что проверил. Правило удаляй, если агент ведёт себя так же и без него. Правку общего <code>CLAUDE.md</code>, линтера или хука по итогам <code>retro</code> отгружай обычным MR.",
+   "upkeep.p8": "Подробности – в документации Claude Code: <a href=\"https://code.claude.com/docs/en/memory\">память</a>, <a href=\"https://code.claude.com/docs/en/skills#check-your-setup-with-/doctor\"><code>/doctor</code></a>, <a href=\"https://code.claude.com/docs/en/costs#analyze-your-usage-patterns\"><code>/insights</code></a>, <a href=\"https://code.claude.com/docs/en/skills#resolve-skills-that-share-a-name\">одноимённые скиллы</a>, и в исходнике скилла <a href=\"https://github.com/mattpocock/skills/tree/main/skills/engineering/retro\"><code>retro</code></a>.",
    "new-repo.h21": "Настройка нового репозитория",
    "new-repo.p1": "Эту настройку делают один раз на репозиторий, а не на каждого разработчика. Она нужна, если в репозитории нет файла <code>docs/agents/issue-tracker.md</code>.",
    "new-repo.summary1": "Зачем, кто делает, 7 шагов и текст про Jira",
@@ -2340,9 +2438,10 @@ addEventListener('DOMContentLoaded', () => {
   const firstOpen = () => steps.find(s => !done.has(s.id));
 
   // External links and local files (setup.sh, claude-rules.md) open in a new tab
-  $$('a[href]').forEach(a => {
+  const externalLinks = () => $$('a[href]').forEach(a => {
     if (!a.getAttribute('href').startsWith('#')) { a.target = '_blank'; a.rel = 'noopener'; }
   });
+  externalLinks();
 
   // Hero stepper: each pipeline stage is labeled with the last command of its step
   const job = s => { const c = $$('.split-cmd code', s).at(-1); return c ? `<span class="node-job">${c.textContent}</span>` : ''; };
@@ -2669,6 +2768,7 @@ addEventListener('DOMContentLoaded', () => {
 
   // Language switch: applyTranslations has already replaced the markup, here we rebuild what the script derives from it
   document.addEventListener('langchange', () => {
+    externalLinks();
     buildStepper();
     render();
     burger.setAttribute('aria-label', t(sb.classList.contains('open') ? 'js.closeToc' : 'topbar.label1'));
