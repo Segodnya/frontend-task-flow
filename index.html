@@ -1038,6 +1038,7 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
 <svg class="clawd clawd-carry" width="96" height="72" viewBox="0 0 16 12" aria-hidden="true"><path d="M0 0h2v6H0zM14 0h2v6h-2zM2 2h12v8H2zM3 10h1v2H3zM5 10h1v2H5zM10 10h1v2h-1zM12 10h1v2h-1z"/><path class="eye" d="M4 3h1v2H4zM11 3h1v2h-1z"/></svg>
 </div></li>
   </ol>
+  <div class="callout warn"><div><p data-i18n="step-4.p12"><strong>Update the checklist after every contract change.</strong> The reviewer checks the diff against the checklist and trusts it more than the code. On one task a developer changed the type of a backend contract field but didn't update the checklist. <code>mr-ready</code> “fixed” the field back to the old wrong type.</p></div></div>
   <p data-i18n="step-4.p4">While <code>mr-ready</code> is running, almost nothing is needed from you. The skill asks you only if it hits a product fork: two UX options or an unclear backend contract.</p>
 
   <div class="callout info"><div><p data-i18n="step-4.p5"><strong>PROJ-103.</strong> The reviewer found that an empty color value breaks the button. The fixer added a default color, pushed a commit and replied in the thread with its hash. The second round had no findings, and the report came back with status <code>ready</code>.</p></div></div>
@@ -1076,6 +1077,22 @@ dl.glossary > :nth-last-child(-n+2) { border-bottom: 0; }
       </table></div>
       <p data-i18n="step-4.p11">If the result isn't <code>ready</code>, the reason is in the first line of the report. If the session got interrupted, just run the skill again. Every run starts from scratch, but nothing is lost: the threads, replies and commits are already in GitLab and git.</p>
 <pre data-i18n-attr="data-label:step-4.label4" data-label="restart mr-ready"><code data-i18n="step-4.code3" class="language-prompt">/segodnya-agents:mr-ready &lt;MR link&gt;</code></pre>
+    </div>
+  </details>
+  <details class="acc">
+    <summary data-i18n="step-4.summary3">Alternative: manual cycles</summary>
+    <div class="acc-body">
+      <p data-i18n="step-4.p13"><code>mr-ready</code> works on its own, but slowly. Every round it can add tests or refactor nearby code, and you review all of it later. If you have time to sit with the MR, run the same cycle by hand. You stay in the context of the code and stop extra changes before they get into the MR.</p>
+      <ol>
+        <li><span data-i18n="step-4.li2">Open a new session and review the branch against the MR base. The skill asks for the MR and the checklist.</span>
+<pre data-i18n-attr="data-label:step-4.label5" data-label="review the branch"><code class="language-prompt">/segodnya-agents:review-staged branch</code></pre></li>
+        <li><span data-i18n="step-4.li3">Fix the findings in another session: the one where you wrote the code, or a new one. Fix by hand or give the report to <code>audit-reply</code>. It gives a recommendation for each finding, and you decide: fix or reply.</span>
+<pre data-i18n-attr="data-label:step-4.label6" data-label="fix by the report"><code data-i18n="step-4.code4" class="language-prompt">/segodnya-agents:audit-reply &lt;path to the report .md&gt;</code></pre></li>
+        <li data-i18n="step-4.li4">Read the diff, then commit and push.</li>
+        <li data-i18n="step-4.li5">Repeat from step 1 until the review has no findings. Two rounds are usually enough.</li>
+      </ol>
+      <div class="callout info"><div><p data-i18n="step-4.p14"><strong>Our sessions.</strong> The manual cycle took a median of 36 minutes of active time per MR: 19 MRs, usually 2 reviews. <code>mr-ready</code> took 65 minutes: 42 MRs, usually 6 rounds.</p></div></div>
+      <p data-i18n="step-4.p15">Choose <code>mr-ready</code> when you want to hand off the MR and switch to another task. Choose manual cycles when you can stay with the MR and want to control every change.</p>
     </div>
   </details>
 </section>
@@ -1667,6 +1684,18 @@ const I18N = (() => {
    "step-4.p11": "If the result isn't <code>ready</code>, the reason is in the first line of the report. If the session got interrupted, just run the skill again. Every run starts from scratch, but nothing is lost: the threads, replies and commits are already in GitLab and git.",
    "step-4.label4": "restart mr-ready",
    "step-4.code3": "/segodnya-agents:mr-ready &lt;MR link&gt;",
+   "step-4.p12": "<strong>Update the checklist after every contract change.</strong> The reviewer checks the diff against the checklist and trusts it more than the code. On one task a developer changed the type of a backend contract field but didn't update the checklist. <code>mr-ready</code> “fixed” the field back to the old wrong type.",
+   "step-4.summary3": "Alternative: manual cycles",
+   "step-4.p13": "<code>mr-ready</code> works on its own, but slowly. Every round it can add tests or refactor nearby code, and you review all of it later. If you have time to sit with the MR, run the same cycle by hand. You stay in the context of the code and stop extra changes before they get into the MR.",
+   "step-4.li2": "Open a new session and review the branch against the MR base. The skill asks for the MR and the checklist.",
+   "step-4.label5": "review the branch",
+   "step-4.li3": "Fix the findings in another session: the one where you wrote the code, or a new one. Fix by hand or give the report to <code>audit-reply</code>. It gives a recommendation for each finding, and you decide: fix or reply.",
+   "step-4.label6": "fix by the report",
+   "step-4.code4": "/segodnya-agents:audit-reply &lt;path to the report .md&gt;",
+   "step-4.li4": "Read the diff, then commit and push.",
+   "step-4.li5": "Repeat from step 1 until the review has no findings. Two rounds are usually enough.",
+   "step-4.p14": "<strong>Our sessions.</strong> The manual cycle took a median of 36 minutes of active time per MR: 19 MRs, usually 2 reviews. <code>mr-ready</code> took 65 minutes: 42 MRs, usually 6 rounds.",
+   "step-4.p15": "Choose <code>mr-ready</code> when you want to hand off the MR and switch to another task. Choose manual cycles when you can stay with the MR and want to control every change.",
    "step-5.h21": "Review",
    "step-5.span1": "You",
    "step-5.p1": "remove Draft",
@@ -2195,6 +2224,18 @@ const I18N = (() => {
    "step-4.p11": "Если результат не <code>ready</code>, причина будет в первой строке отчёта. Если сессия прервалась, просто запусти скилл снова. Каждый запуск начинается с нуля, но ничего не теряется: треды, ответы и коммиты уже лежат в GitLab и git.",
    "step-4.label4": "перезапуск mr-ready",
    "step-4.code3": "/segodnya-agents:mr-ready &lt;ссылка на MR&gt;",
+   "step-4.p12": "<strong>Обновляй чек-лист после каждой правки контракта.</strong> Ревьюер сверяет дифф с чек-листом и верит ему больше, чем коду. На одной задаче разработчик сменил тип поля в контракте с бэкендом, а чек-лист не обновил. <code>mr-ready</code> «починил» поле обратно на старый неверный тип.",
+   "step-4.summary3": "Альтернатива: ручные циклы",
+   "step-4.p13": "<code>mr-ready</code> работает сам, но долго. На каждом раунде он может дописать тесты или отрефакторить соседний код, а ты потом ревьюишь всё это. Если готов посидеть с MR, пройди тот же цикл вручную. Ты остаёшься в контексте кода и отсекаешь лишние правки до того, как они попадут в MR.",
+   "step-4.li2": "Открой новую сессию и запусти ревью ветки от базы MR. Скилл спросит MR и чек-лист.",
+   "step-4.label5": "ревью ветки",
+   "step-4.li3": "Исправь находки в другой сессии: в той, где писал код, или в новой. Правь руками или отдай отчёт <code>audit-reply</code>. Он даст рекомендацию по каждой находке, а решаешь ты: править или ответить.",
+   "step-4.label6": "правки по отчёту",
+   "step-4.code4": "/segodnya-agents:audit-reply &lt;путь к .md отчёта&gt;",
+   "step-4.li4": "Прочитай дифф, закоммить и запушь.",
+   "step-4.li5": "Повторяй с шага 1, пока ревью не перестанет находить проблемы. Обычно хватает двух кругов.",
+   "step-4.p14": "<strong>Наши сессии.</strong> Ручной цикл занял в медиане 36 минут активного времени на MR: 19 MR, обычно 2 ревью. <code>mr-ready</code> – 65 минут: 42 MR, обычно 6 раундов.",
+   "step-4.p15": "Бери <code>mr-ready</code>, когда хочешь отдать MR и переключиться на другую задачу. Бери ручные циклы, когда можешь посидеть с MR и хочешь контролировать каждую правку.",
    "step-5.h21": "Аудит",
    "step-5.span1": "Ты",
    "step-5.p1": "снимаешь Draft",
